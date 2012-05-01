@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Rails | 不歸錄]]></title>
+  <link href="http://tonytonyjan.github.com/categories/rails/atom.xml" rel="self"/>
+  <link href="http://tonytonyjan.github.com/"/>
+  <updated>2012-05-01T23:15:46+08:00</updated>
+  <id>http://tonytonyjan.github.com/</id>
+  <author>
+    <name><![CDATA[大兜]]></name>
+    <email><![CDATA[tonytonyjan@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[params["key"] 和 params[:key]]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/03/string-and-symbol-in-controller/"/>
+    <updated>2012-03-03T15:31:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/03/string-and-symbol-in-controller</id>
+    <content type="html"><![CDATA[<p>今天在寫學長託付的 API Server 時，突然對 controller 中用到的 params 變數感到好奇，我想知道為什麼 <code>params[:id]</code> 和 <code>params["id"]</code> 都可以 access 同一份資料，於是展開了 trace code 奇幻之旅。</p>
+
+<p>我臨時寫了一個程式，先 trace <code>params[:id]</code>，再 trace <code>params["id"]</code>，並用等於符號分隔，看他們之間的不同：</p>
+
+<p>``` ruby Experiment in controller
+set_trace_func proc { |event, file, line, id, binding, classname|
+   printf "%8s %s:%-2d %10s %8s\n", event, file, line, id, classname
+}
+params[:id]
+set_trace_func nil</p>
+
+<p>puts "=====================" # 我不希望 trace 到 puts method</p>
+
+<p>set_trace_func proc { |event, file, line, id, binding, classname|
+   printf "%8s %s:%-2d %10s %8s\n", event, file, line, id, classname
+}
+params["id"]
+set_trace_func nil
+```</p>
+
+<!-- more -->
+
+
+<p>我本來以為使用 Symbol 替代 String 是比較省力的，想不到 Rails 下當我們呼叫 <code>params[:key]</code> 時，會徒增許多 call stack，事實就是，Rails 還得幫我們把 Symbol 轉成 String。</p>
+
+<p>``` text Difference between using Symbol and String
+c-return D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:61 set_trace_func   Kernel</p>
+
+<pre><code>line D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:62 UpdatePlayerInfo ApiController
+call C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:143     params ActionController::Metal
+line C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:144     params ActionController::Metal
+call C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_dispatch/http/parameters.rb:8  parameters ActionDispatch::Http::Parameters
+line C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_dispatch/http/parameters.rb:9  parameters ActionDispatch::Http::Parameters
+</code></pre>
+
+<p>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_dispatch/http/parameters.rb:14 parameters ActionDispatch::Http::Parameters
+  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:145     params ActionController::Metal
+  c-call D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:62         []     Hash</p>
+
+<pre><code>call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:32    default ActiveSupport::HashWithIndifferentAccess
+line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33    default ActiveSupport::HashWithIndifferentAccess
+</code></pre>
+
+<p>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33      is_a?   Kernel
+c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33      is_a?   Kernel
+  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33       to_s   Symbol
+c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33       to_s   Symbol</p>
+
+<pre><code>call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:88       key? ActiveSupport::HashWithIndifferentAccess
+line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:89       key? ActiveSupport::HashWithIndifferentAccess
+call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:152 convert_key ActiveSupport::HashWithIndifferentAccess
+line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:153 convert_key ActiveSupport::HashWithIndifferentAccess
+</code></pre>
+
+<p>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:153   kind_of?   Kernel
+c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:153   kind_of?   Kernel</p>
+
+<pre><code>line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:153 convert_key ActiveSupport::HashWithIndifferentAccess
+</code></pre>
+
+<p>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:154 convert_key ActiveSupport::HashWithIndifferentAccess
+  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:89       key?     Hash
+c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:89       key?     Hash
+  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:90       key? ActiveSupport::HashWithIndifferentAccess</p>
+
+<pre><code>line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default ActiveSupport::HashWithIndifferentAccess
+</code></pre>
+
+<p>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default     Hash
+c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default     Hash
+  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:38    default ActiveSupport::HashWithIndifferentAccess
+c-return D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:62         []     Hash</p>
+
+<pre><code>line D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:63 UpdatePlayerInfo ApiController
+</code></pre>
+
+<h1>  c-call D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:63 set_trace_func   Kernel</h1>
+
+<p>c-return D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:67 set_trace_func   Kernel</p>
+
+<pre><code>line D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:68 UpdatePlayerInfo ApiController
+call C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:143     params ActionController::Metal
+line C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:144     params ActionController::Metal
+</code></pre>
+
+<p>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:145     params ActionController::Metal
+  c-call D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:68         []     Hash</p>
+
+<pre><code>call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:32    default ActiveSupport::HashWithIndifferentAccess
+line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33    default ActiveSupport::HashWithIndifferentAccess
+</code></pre>
+
+<p>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33      is_a?   Kernel
+c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33      is_a?   Kernel</p>
+
+<pre><code>line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default ActiveSupport::HashWithIndifferentAccess
+</code></pre>
+
+<p>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default     Hash
+c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default     Hash
+  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:38    default ActiveSupport::HashWithIndifferentAccess
+c-return D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:68         []     Hash</p>
+
+<pre><code>line D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:69 UpdatePlayerInfo ApiController
+</code></pre>
+
+<p>  c-call D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:69 set_trace_func   Kernel
+```</p>
+
+<p>以往知道 Symbol 適合拿來當 key，是因為你不管 access 幾次，都是指到同一個 memory，而且不會被 GC 回收。舉例來說，如果我們存取 <code>params["id"]</code> 一百次，則會產生一百個 <code>"id"</code> 字串，反觀使用 Symbol 則不會花太多時間和資源在建立物件上：</p>
+
+<p><code>ruby Experiment code
+100.times{
+  printf "%d\t%d", "tonytonyjan".object_id, :tonytonyjan.object_id
+}
+</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[將現有資料庫導入 Rails ActiveModel]]></title>
+    <link href="http://tonytonyjan.github.com/2011/08/17/using-existing-database-in-rails/"/>
+    <updated>2011-08-17T17:45:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2011/08/17/using-existing-database-in-rails</id>
+    <content type="html"><![CDATA[<p>官方說明文件上沒有這方面的說明，網路上爬到的解大多過時，或者根本不正確，於是作此文分享我目前的方法。</p>
+
+<p>當使用 rails 指令產生新的 Model 時，這樣的寫法很常見：</p>
+
+<!-- more -->
+
+
+<p>```
+$ rails g model my_model</p>
+
+<pre><code>  invoke  active_record
+  create    db/migrate/yyyymmddhhMMss_create_my_models.rb
+  create    app/models/my_model.rb
+  invoke    test_unit
+  create      test/unit/my_model_test.rb
+  create      test/fixtures/my_models.yml
+</code></pre>
+
+<p>```</p>
+
+<p>``` ruby db/migrate/yyyymmddhhMMss_create_my_models.rb
+class CreateMyModels &lt; ActiveRecord::Migration
+  def self.up</p>
+
+<pre><code>create_table :my_models do |t|
+  t.timestamps
+end
+</code></pre>
+
+<p>  end</p>
+
+<p>  def self.down</p>
+
+<pre><code>drop_table :my_models
+</code></pre>
+
+<p>  end
+end
+```</p>
+
+<p><code>ruby app/models/my_model.rb
+class MyModel &lt; ActiveRecord::Base
+end
+</code></p>
+
+<p>當然，如果對於要產生新的 schema 來說，這的確是個好方法。但有有時候我們需要使用資料庫上既有的 table（例如接管某個 legacy database，尤其是這個 database 原先不是架構在 RoR 之上），如此 migratoin 顯得多餘，如果只是單純想要有個 model 介面來撈資料，可能需要解決以下問題：
+1. 不要產生 migration</p>
+
+<p>   因為我們只是想去撈資料，而非更動 table，自然不需要 migrate
+2. 並非所有 table 都是複數</p>
+
+<p>   指令產生的 migration 可見 table name 預設為 model name 的複數型，但我們的 table 未必如此
+3. 並非所有的 primary key 都叫 id</p>
+
+<p>   schema 裡頭除了定義使用者自訂的 column 之外，rails 預設會加上 id 和時間戳記（created_at 和 updated_at），而 id 同時也是 primary key 且 預設為 auto_increment，此外 primary key 也有可能是字串
+4. 有些 primary key 包涵多個 column（composite primary key）</p>
+
+<p>   又稱「組合鍵」，即主鍵由多個欄位組成。遺憾的，RoR 並沒有支援 composite primary key</p>
+
+<p>以下聽我娓娓道來。</p>
+
+<h2>不要產生 Migration</h2>
+
+<p>那就是直接建立 <code>app/models/my_model.rb</code></p>
+
+<p><code>ruby app/models/my_model.rb
+class MyModel &lt; ActiveRecord::Base
+end
+</code></p>
+
+<p>但是建議最好還是以指令方式產生比較省時，記得加上 --skip-migration 參數即可，除此還可以得到 test unit。</p>
+
+<p>```
+$ rails g model my_model --skip-migration</p>
+
+<pre><code>  invoke  active_record
+  create    app/models/my_model.rb
+  invoke    test_unit
+  create      test/unit/my_model_test.rb
+  create      test/fixtures/my_models.yml
+</code></pre>
+
+<p>```</p>
+
+<h2>設定 Table Name</h2>
+
+<p>第一步已經完成了，假設我們想撈資料的 table name 為 my_table，我們產生的 model name 為 my_model，按照 Rails convention 法則，應該要有 table 名為 my_models 才是。但假設我們卻想掛羊頭賣狗肉地把 my_model 裝在 my_table 上：</p>
+
+<p><code>ruby app/models/my_model.rb
+class MyModel &lt; ActiveRecord::Base
+  set_table_name :my_table
+end
+</code></p>
+
+<p>試試看，成功了：</p>
+
+<p><code>
+$ rails c
+Loading development environment (Rails 3.0.9)
+irb(main):001:0&gt; MyModel
+=&gt; MyModel(id: integer, title: string, description: text)
+</code></p>
+
+<p>但這只有在 id column 跟好是 primary key 才會這麼順利，萬一 primary key 是別的 column，光這樣這定還不夠。</p>
+
+<h2>設定 Primary Key</h2>
+
+<p>假設 primary key 是 title：</p>
+
+<p><code>ruby app/models/my_model.rb
+class MyModel &lt; ActiveRecord::Base
+  set_table_name :my_table
+  set_primary_key :title # or 'self.primary_key = :title'
+  # This method is also aliased as primary_key=
+end
+</code></p>
+
+<p>正常情況下，Active Record 會在我們產生新的 record 時自動產生 primary key，名為 id ，且是會遞增的整數。然而，如果我們在 table 上使用其他 column name 做為 primary key 的名字，我們同時有責任要重新定義該 record 上的 primary key，正如上方展示的程式碼。</p>
+
+<p>神奇的事發生了，我們仍可以透過 id 方法去存取的 primary key。這是因為 Active Record 慣於將 primary key 的操作綁在 id 和 id= 等方法，而 set_primary_key 只是投射 id 會指向的 column name。下方程式碼展示了在 primary key 是 "title" 的情況下用 id 去存取 primary key：</p>
+
+<p><code>
+irb(main):010:0&gt; MyModel.first.stuid
+=&gt; "A Title"
+irb(main):011:0&gt; MyModel.first.id # same as MyModel.first.title
+=&gt; "A Title"
+irb(main):012:0&gt; MyModel.find("A Title")
+=&gt; #&lt;MyModel id: "A Title", title: "A Title", description: "A Description"&gt;
+irb(main):013:0&gt;
+</code></p>
+
+<p>相當乾淨俐落地解決了第三個問題，至於第四個問題，composite primary key，該怎麼辦？假設該 composite primary keys 分別為 title 和 description。恩，加個's'：</p>
+
+<p><code>ruby app/models/my_model.rb
+class MyModel &lt; ActiveRecord::Base
+  set_table_name :my_table
+  set_primary_keys :title, :description
+end
+</code></p>
+
+<p>然後你會免費被贈送一個 NoMethodError Exception。在你一邊擦螢幕時，請聽我說：既然RoR都說不支援了，哪有這麼簡單的事情讓你加個's'就解決呢？這個問題目前的解決方案是透過 plugin 來實現。你可以參考[這一頁] (http://weblog.rubyonrails.org/2006/7/30/composite-primary-keys-for-active-record)。你會發現，裝完這個 plugin 之後，確實就只要加上一個 <code>s</code>。XD</p>
+]]></content>
+  </entry>
+  
+</feed>

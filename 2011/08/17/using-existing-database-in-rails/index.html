@@ -1,0 +1,541 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>將現有資料庫導入 Rails ActiveModel - 不歸錄</title>
+  <meta name="author" content="大兜">
+
+  
+  <meta name="description" content="官方說明文件上沒有這方面的說明，網路上爬到的解大多過時，或者根本不正確，於是作此文分享我目前的方法。 當使用 rails 指令產生新的 Model 時，這樣的寫法很常見： 1
+2
+3
+4
+5
+6
+7
+$ rails g model my_model invoke active_record &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tonytonyjan.github.com/2011/08/17/using-existing-database-in-rails">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="不歸錄" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-29458592-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">不歸錄</a></h1>
+  
+    <h2>程式X鋼琴X雙馬尾</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tonytonyjan.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">首頁</a></li>
+  <li><a href="/blog/archives">文章列表</a></li>
+  <li><a href="/blog/about">關於我</a></li>
+  <li><a href="/blog/works">作品集</a></li>
+  <li><a href="/blog/quotes">兜語錄</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">將現有資料庫導入 Rails ActiveModel</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-08-17T17:45:00+08:00" pubdate data-updated="true">Aug 17<span>th</span>, 2011</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>官方說明文件上沒有這方面的說明，網路上爬到的解大多過時，或者根本不正確，於是作此文分享我目前的方法。</p>
+
+<p>當使用 rails 指令產生新的 Model 時，這樣的寫法很常見：</p>
+
+<!-- more -->
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rails g model my_model
+</span><span class='line'>      invoke  active_record
+</span><span class='line'>      create    db/migrate/yyyymmddhhMMss_create_my_models.rb
+</span><span class='line'>      create    app/models/my_model.rb
+</span><span class='line'>      invoke    test_unit
+</span><span class='line'>      create      test/unit/my_model_test.rb
+</span><span class='line'>      create      test/fixtures/my_models.yml</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>db/migrate/yyyymmddhhMMss_create_my_models.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">CreateMyModels</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">up</span>
+</span><span class='line'>    <span class="n">create_table</span> <span class="ss">:my_models</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">t</span><span class="o">.</span><span class="n">timestamps</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">down</span>
+</span><span class='line'>    <span class="n">drop_table</span> <span class="ss">:my_models</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>app/models/my_model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyModel</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>當然，如果對於要產生新的 schema 來說，這的確是個好方法。但有有時候我們需要使用資料庫上既有的 table（例如接管某個 legacy database，尤其是這個 database 原先不是架構在 RoR 之上），如此 migratoin 顯得多餘，如果只是單純想要有個 model 介面來撈資料，可能需要解決以下問題：
+1. 不要產生 migration</p>
+
+<p>   因為我們只是想去撈資料，而非更動 table，自然不需要 migrate
+2. 並非所有 table 都是複數</p>
+
+<p>   指令產生的 migration 可見 table name 預設為 model name 的複數型，但我們的 table 未必如此
+3. 並非所有的 primary key 都叫 id</p>
+
+<p>   schema 裡頭除了定義使用者自訂的 column 之外，rails 預設會加上 id 和時間戳記（created_at 和 updated_at），而 id 同時也是 primary key 且 預設為 auto_increment，此外 primary key 也有可能是字串
+4. 有些 primary key 包涵多個 column（composite primary key）</p>
+
+<p>   又稱「組合鍵」，即主鍵由多個欄位組成。遺憾的，RoR 並沒有支援 composite primary key</p>
+
+<p>以下聽我娓娓道來。</p>
+
+<h2>不要產生 Migration</h2>
+
+<p>那就是直接建立 <code>app/models/my_model.rb</code></p>
+
+<figure class='code'><figcaption><span>app/models/my_model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyModel</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但是建議最好還是以指令方式產生比較省時，記得加上 &#8211;skip-migration 參數即可，除此還可以得到 test unit。</p>
+
+<figure class='code'><figcaption><span>app/models/my_model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">rails</span> <span class="n">g</span> <span class="n">model</span> <span class="n">my_model</span> <span class="o">--</span><span class="n">skip</span><span class="o">-</span><span class="n">migration</span>
+</span><span class='line'>      <span class="n">invoke</span>  <span class="n">active_record</span>
+</span><span class='line'>      <span class="n">create</span>    <span class="n">app</span><span class="o">/</span><span class="n">models</span><span class="o">/</span><span class="n">my_model</span><span class="o">.</span><span class="n">rb</span>
+</span><span class='line'>      <span class="n">invoke</span>    <span class="n">test_unit</span>
+</span><span class='line'>      <span class="n">create</span>      <span class="nb">test</span><span class="o">/</span><span class="n">unit</span><span class="o">/</span><span class="n">my_model_test</span><span class="o">.</span><span class="n">rb</span>
+</span><span class='line'>      <span class="n">create</span>      <span class="nb">test</span><span class="o">/</span><span class="n">fixtures</span><span class="o">/</span><span class="n">my_models</span><span class="o">.</span><span class="n">yml</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>設定 Table Name</h2>
+
+<p>第一步已經完成了，假設我們想撈資料的 table name 為 my_table，我們產生的 model name 為 my_model，按照 Rails convention 法則，應該要有 table 名為 my_models 才是。但假設我們卻想掛羊頭賣狗肉地把 my_model 裝在 my_table 上：</p>
+
+<figure class='code'><figcaption><span>app/models/my_model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyModel</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">set_table_name</span> <span class="ss">:my_table</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>試試看，成功了：</p>
+
+<figure class='code'><figcaption><span>app/models/my_model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">rails</span> <span class="n">c</span>
+</span><span class='line'><span class="no">Loading</span> <span class="n">development</span> <span class="n">environment</span> <span class="p">(</span><span class="no">Rails</span> <span class="mi">3</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">9</span><span class="p">)</span>
+</span><span class='line'><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">001</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="no">MyModel</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="no">MyModel</span><span class="p">(</span><span class="nb">id</span><span class="p">:</span> <span class="n">integer</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="n">string</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="n">text</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但這只有在 id column 跟好是 primary key 才會這麼順利，萬一 primary key 是別的 column，光這樣這定還不夠。</p>
+
+<h2>設定 Primary Key</h2>
+
+<p>假設 primary key 是 title：</p>
+
+<figure class='code'><figcaption><span>app/models/my_model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyModel</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">set_table_name</span> <span class="ss">:my_table</span>
+</span><span class='line'>  <span class="n">set_primary_key</span> <span class="ss">:title</span> <span class="c1"># or &#39;self.primary_key = :title&#39;</span>
+</span><span class='line'>  <span class="c1"># This method is also aliased as primary_key=</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>正常情況下，Active Record 會在我們產生新的 record 時自動產生 primary key，名為 id ，且是會遞增的整數。然而，如果我們在 table 上使用其他 column name 做為 primary key 的名字，我們同時有責任要重新定義該 record 上的 primary key，正如上方展示的程式碼。</p>
+
+<p>神奇的事發生了，我們仍可以透過 id 方法去存取的 primary key。這是因為 Active Record 慣於將 primary key 的操作綁在 id 和 id= 等方法，而 set_primary_key 只是投射 id 會指向的 column name。下方程式碼展示了在 primary key 是 &#8220;title&#8221; 的情況下用 id 去存取 primary key：</p>
+
+<figure class='code'><figcaption><span>app/models/my_model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">010</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="no">MyModel</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">stuid</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;A Title&quot;</span>
+</span><span class='line'><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">011</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="no">MyModel</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">id</span> <span class="c1"># same as MyModel.first.title</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="s2">&quot;A Title&quot;</span>
+</span><span class='line'><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">012</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="no">MyModel</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;A Title&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="o">=&gt;</span> <span class="c1">#&lt;MyModel id: &quot;A Title&quot;, title: &quot;A Title&quot;, description: &quot;A Description&quot;&gt;</span>
+</span><span class='line'><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">013</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>相當乾淨俐落地解決了第三個問題，至於第四個問題，composite primary key，該怎麼辦？假設該 composite primary keys 分別為 title 和 description。恩，加個&#8217;s&#8217;：</p>
+
+<figure class='code'><figcaption><span>app/models/my_model.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyModel</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">set_table_name</span> <span class="ss">:my_table</span>
+</span><span class='line'>  <span class="n">set_primary_keys</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:description</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然後你會免費被贈送一個 NoMethodError Exception。在你一邊擦螢幕時，請聽我說：既然RoR都說不支援了，哪有這麼簡單的事情讓你加個&#8217;s&#8217;就解決呢？這個問題目前的解決方案是透過 plugin 來實現。你可以參考[這一頁] (http://weblog.rubyonrails.org/2006/7/30/composite-primary-keys-for-active-record)。你會發現，裝完這個 plugin 之後，確實就只要加上一個 <code>s</code>。XD</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">大兜</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-08-17T17:45:00+08:00" pubdate data-updated="true">Aug 17<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/rails/'>Rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://tonytonyjan.github.com/2011/08/17/using-existing-database-in-rails/" data-via="" data-counturl="http://tonytonyjan.github.com/2011/08/17/using-existing-database-in-rails/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/2011/08/12/ruby-block-proc-lambda/" title="Previous Post: Ruby Block, Proc and Lambda">&laquo; Ruby Block, Proc and Lambda</a>
+      
+      
+        <a class="basic-alignment right" href="/2011/08/22/16/" title="Next Post: 好久不見，親愛的嘉中">好久不見，親愛的嘉中 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <iframe src="http://free.timeanddate.com/countdown/i30p7ijg/n241/cf114/cm0/cu4/ct0/cs1/ca0/co1/cr0/ss0/cac000/cpc000/pcfff/tc66c/fs100/szw256/szh108/tat%E8%B7%9D%E9%9B%A2%E7%95%A2%E6%A5%AD%E5%85%B8%E7%A6%AE%E2%80%A6/tac000/tpt%E6%88%91%E7%95%A2%E6%A5%AD%E4%BA%86%EF%BC%81/tpc000/iso2012-06-09T00:00:00" frameborder="0" width="256" height="108"></iframe>
+</section><section>
+  <h1>給我個鼓勵吧＝）</h1>
+  
+    <div style="float: left;" class="g-plusone" data-size="tall" data-annotation="inline" data-href="http://tonytonyjan.heroku.com" data-width="260"></div>
+  
+  
+    <div class="fb-like" data-href="http://tonytonyjan.heroku.com" data-send="false" data-width="260" data-show-faces="true"></div>
+  
+  
+    <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://tonytonyjan.heroku.com" data-text="不歸錄" data-via="tonytonyjan" data-size="large">Tweet</a>
+  
+</section><section>
+  <h1>關於我</h1>
+  <a href="http://www.facebook.com/tonytonyjan"><img src="http://photos-a.ak.fbcdn.net/hphotos-ak-ash4/196443_10150123214557620_714547619_6717277_2177303_a.jpg" alt="很帥的照片" title="大兜本尊"></a>
+  <p>嗨！我叫大兜，一個追求幸福快樂的反逆工程師，喜歡程式、旅行、彈琴和公益。</p>
+</section>
+<section>
+  <h1>音樂作品</h1>
+  <iframe marginwidth='0' marginheight='0' src='http://vlog.xuite.net/embed/OE5JOFRuLTE2MzA2NTguZmx2?v=1.0.1&ar=1' scrolling='no' frameborder='0' width='260' height='85'></iframe>
+  <p>我同時也是個業餘的三腳貓音樂創作者，這是我最喜歡的自創曲之一，我在 <a href="http://www.youtube.com/tonytonyjan">YouTube</a> 放了許多作品，歡迎來欣賞＝）</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2012/05/01/indexer-for-octopress/">將 Octopress Page 依照標題自動索引</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/28/sleeping-and-eating/">吃、睡與生活</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/28/lee-shou-quan/">李壽全與他的音樂</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/27/display-recent-comments-in-octopress-2/">在 Octopress 加上近期回覆（二）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/03/raise-my-family/">齊家</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/18/new-light-plan/">新光計畫</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/08/using-sinatra-for-local-javascript-development/">使用 Sinatra、HFS 在本地開發 Javascript</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/06/shortcut-to-open-command-prompt-in-current-directory/">在目錄下打開命令提示字元</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/05/cooperation-and-connection/">團隊、溝通管道</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/03/string-and-symbol-in-controller/">params["key"] 和 params[:key]</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h1>近期回覆</h1>
+  <div id="recentcomments" class="dsq-widget"><h2 class="dsq-widget-title">Recent Comments</h2><script type="text/javascript" src="http://tonytonyjan-blog.disqus.com/recent_comments_widget.js?num_items=5&hide_avatars=0&avatar_size=48&excerpt_length=200"></script></div><a href="http://disqus.com/">Powered by Disqus</a>
+</section>
+<section>
+  <h1>文章分類</h1>
+    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.33149171270718%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.65745856353591%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(181)</a> <a href='/categories/disqus' style='font-size: 100.66298342541437%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.32596685082873%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.33149171270718%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.65193370165746%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.32044198895028%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.33149171270718%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.33149171270718%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 114.25414364640883%'>Life(43)</a> <a href='/categories/music' style='font-size: 100.33149171270718%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.65745856353591%'>Octopress(5)</a> <a href='/categories/octopress-' style='font-size: 100.33149171270718%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.66298342541437%'>Rails(2)</a> <a href='/categories/regex' style='font-size: 100.33149171270718%'>Regex(1)</a> <a href='/categories/revision-control' style='font-size: 100.33149171270718%'>Revision-control(1)</a> <a href='/categories/ruby' style='font-size: 100.33149171270718%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.33149171270718%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.33149171270718%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.33149171270718%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.33149171270718%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.60773480662984%'>Works(32)</a> </span>
+</section>
+
+
+<section>
+  <h1>噗浪動態</h1>
+  <div style="width:210px; height:375px;">
+    <iframe src="http://www.plurk.com/getWidget?uid=5874158&amp;h=375&amp;w=210&amp;u_info=2&amp;bg=5E5E5E&tl=D3D3D3" width="210" frameborder="0" height="375" scrolling="no"></iframe>
+    <div style="float: right; padding: 1px;">
+      <a href="http://plurk.com/" target="_blank" style="font-size: 10px !important; color: #999 !important; border: none; text-decorate: none;" title="Plurk - A Social Journal for your life">Plurk.com</a>
+    </div>
+  </div>
+</section>
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/106993981418226624133?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - 大兜 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'tonytonyjan-blog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tonytonyjan.github.com/2011/08/17/using-existing-database-in-rails/';
+        var disqus_url = 'http://tonytonyjan.github.com/2011/08/17/using-existing-database-in-rails/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

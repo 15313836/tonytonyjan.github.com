@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Octopress | 不歸錄]]></title>
+  <link href="http://tonytonyjan.github.com/categories/octopress/atom.xml" rel="self"/>
+  <link href="http://tonytonyjan.github.com/"/>
+  <updated>2012-05-01T23:15:46+08:00</updated>
+  <id>http://tonytonyjan.github.com/</id>
+  <author>
+    <name><![CDATA[大兜]]></name>
+    <email><![CDATA[tonytonyjan@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[在 Octopress 加上近期回覆（二）]]></title>
+    <link href="http://tonytonyjan.github.com/2012/04/27/display-recent-comments-in-octopress-2/"/>
+    <updated>2012-04-27T14:55:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/04/27/display-recent-comments-in-octopress-2</id>
+    <content type="html"><![CDATA[<p>之前在有發過一篇<a href="/2012/02/12/display-recent-comments-in-octopress">在 Octopress 加上近期回覆</a>，我因為找不到有關顯示近期回應的程式碼（搜尋能力有待加強），所以自己徒手寫了一個。想不到今天在 Disqus 管理頁面發現有 widget 可以用，除此之外還有熱門回覆等其他 wedget。</p>
+
+<p>可惡啊……之前做了白工……</p>
+
+<p><img src="/images/disqus-admin-tools.png"></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在 Windows 使用 Octopress]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/01/install-octopress-on-windows/"/>
+    <updated>2012-03-01T15:47:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/01/install-octopress-on-windows</id>
+    <content type="html"><![CDATA[<h2>安裝 Ruby</h2>
+
+<p>雖然你也可以安裝 <a href="http://www.ruby-lang.org/en/downloads">RVM</a> 或者自行編譯，但既然是在 Windows 下，建議直接使用 <a href="http://rubyinstaller.org/downloads">Ruby Installer</a> 最省事。在此要下載兩個東西，一就是 ruby ，另一個則是 development kit。之所以要後者是因為屆時在安裝 Octopress 時，所需要用到的 ruby gems 會需要在本地編譯（例如 <a href="https://github.com/rtomayko/rdiscount">rdiscount</a>）。而 development kit 是一套基於 <a href="http://www.mingw.org/wiki/MSYS">MSYS/MinGW</a> 下的 C/C++ 編譯環境工具組，安裝時請跟著<a href="https://github.com/oneclick/rubyinstaller/wiki/Development-Kit">官網上的指示</a>即可，你大概會輸入以下指令：</p>
+
+<pre><code>cd C:\Devkit
+ruby dk.rb init :: 產生 config.yaml，裡面有你的 ruby 路徑，一般會幫你設好
+ruby dk.rb install
+</code></pre>
+
+<p>為了保險起見，安裝之後先更新一下 gem 是個好習慣。</p>
+
+<pre><code>gem update --system
+gem update
+</code></pre>
+
+<!-- more -->
+
+
+<h2>安裝 Git</h2>
+
+<p>下載 <a href="http://git-scm.com">Git</a> 之後，安裝時請選擇 label 上有類似「Full installer for official Git for Windows」之類的字樣。</p>
+
+<h2>安裝 Octopress</h2>
+
+<pre><code>git clone git://github.com/imathis/octopress.git DIR_NAME
+cd DIR_NAME
+gem install bundler
+bundle install :: 安裝 Gemfile 檔案中所列的 gems
+rake install :: 安裝預設的 Octopress 樣式
+</code></pre>
+
+<p>如果你只是想要寫一般的文字網誌，那麼到此為止即可；如果想要加上一些分享代碼，當然你也可以使用 markdown 內附的 code block syntax，但要是你希望可以將程式碼上色或加上行號（也就是 <a href="http://octopress.org/docs/plugins/">Octopress plugins</a> 裡面的 Backtick Code Block、Code Block 和 Include Code 功能），再安裝 Python 2.7。</p>
+
+<h2>安裝 Python</h2>
+
+<p>之所以要安裝 Python 是因為 Octopress 的代碼上色 plugin 是用 Python 的一個開源項目：<a href="http://pygments.org/">Pygment</a>，雖然 Pygment 支援 Python 2 版和 3 版，不過由於 Ruby 和 Python 之間的橋接是用 <a href="http://rubypython.rubyforge.org">RubyPython</a> 完成，而 RubyPython 目前只支援 Python 2。所以還是乖乖安裝 2 版吧！</p>
+
+<h2>遇到問題</h2>
+
+<h3>RubyPython</h3>
+
+<p>還有一點想在此特別提出，當我進行到這個步驟後，以為可以從此高枕無憂寫文章時，在文章中使用 code block 的功能並且執行 <code>rake generate</code>，不料卻噴了一大堆錯誤：</p>
+
+<pre><code>(LoadError)ib/ruby/gems/1.9.1/gems/ffi-1.0.9-x86-mingw32/lib/ffi/library.rb:75:in `block in ffi_lib': Could not open library '.dll': 找不到指定的模組。
+      from C:/Ruby193/lib/ruby/gems/1.9.1/gems/ffi-1.0.9-x86-mingw32/lib/ffi/library.rb:54:in `map'
+      from C:/Ruby193/lib/ruby/gems/1.9.1/gems/ffi-1.0.9-x86-mingw32/lib/ffi/library.rb:54:in `ffi_lib'
+      from C:/Ruby193/lib/ruby/gems/1.9.1/gems/rubypython-0.5.1/lib/rubypython/python.rb:30:in `&lt;module:Python&gt;'
+      from C:/Ruby193/lib/ruby/gems/1.9.1/gems/rubypython-0.5.1/lib/rubypython/python.rb:21:in `&lt;top (required)&gt;'
+...
+</code></pre>
+
+<p>一開使找不到原因，所以去問 Google，找到<a href="http://mattn.github.com/blog/2011/10/21/octopress-pygments-utf8/">這篇文章</a>，提到 rubypython 需要 python27.dll，但由於在 C:\python\libs 下找不到，於是作者將 C:\windows\system32\python27.dll 複製過去便解決了這個問題。而我也照做了，果然！</p>
+
+<p>果然事情沒有憨人想的這麼簡單，錯誤訊息原封不動地噴出來。經過 trace code 之後：</p>
+
+<p>``` ruby C:\Ruby193\lib\ruby\gems\1.9.1\gems\rubypython-0.5.1\lib\rubypython\python.rb:26</p>
+
+<pre><code>PYTHON_LIB = EXEC.library
+# FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_GLOBAL
+ffi_lib_flags :lazy, :global
+ffi_lib EXEC.library
+</code></pre>
+
+<p>```</p>
+
+<p>我發現問題出在 EXEC.library 一直是 nil 所導致，神奇的是我用 irb 去測試同樣的代碼，卻可以正常運作，而且 python27.dll 明明就在預設的 path 中能找到。找不到原因，最後我只好決定使用最黑暗的方法解決這個問題：</p>
+
+<p>``` ruby C:\Ruby193\lib\ruby\gems\1.9.1\gems\rubypython-0.5.1\lib\rubypython\python.rb:26</p>
+
+<pre><code>PYTHON_LIB = EXEC.library
+# FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_GLOBAL
+ffi_lib_flags :lazy, :global
+# ffi_lib EXEC.library # 問題出在 EXEC.library 一直是 nil，所以就乾脆註解掉
+ffi_lib "python27" # 直接加上字串
+</code></pre>
+
+<p>```</p>
+
+<p>RubyPython 對 Windows 的支援沒有很好是被公認的，而我今天也領教到了。</p>
+
+<h3>UTF-8 編碼</h3>
+
+<p>嘗試在 windows 下使用 octopress，幾乎快被 Windows 的編碼問題搞死！</p>
+
+<p>繁中版 Windows 預設都是以 Big5 為編碼，所以輸入 <code>rake generate</code> 時，如果文章裡面出現 utf-8 編碼，就會出錯。雖然這個問題只要在文章都以 big5 撰寫的前提下獲得解決，但我不太建議這麼做。以前寫網頁大多人都喜歡用 big5，但這僅限於台港中地區，只要出了這個地方往往會有亂碼，且現在寫網頁也多建議用 utf-8。</p>
+
+<p>解決方式是在 <code>rake generate</code> 之前先設定變數：</p>
+
+<pre><code>set LANG=zh_TW.UTF-8
+set LC_ALL=zh_TW.UTF-8
+</code></pre>
+
+<p>另外我們還要有個可以編寫 utf-8 文件的編輯器才行，我習慣用 <a href="http://notepad-plus-plus.org">notepad++</a>。或者你也可以使用 <a href="http://markdownpad.com/">MarkdownPad</a>，一個在 Windows 下專門編寫 markdown 的編輯器。</p>
+
+<p>大功告成，如此即可在 windows 寫 utf-8 編碼的部落格。如果嫌指令麻煩，可以寫成 batch：</p>
+
+<p><code>bat gen.bat
+@echo off
+set LANG=zh_TW.UTF-8
+set LC_ALL=zh_TW.UTF-8
+bundle exec rake generate
+</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[將文章從 Wordpress 搬到 Octopress]]></title>
+    <link href="http://tonytonyjan.github.com/2012/02/25/migrate-from-wordpress-to-octopress/"/>
+    <updated>2012-02-25T01:36:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/02/25/migrate-from-wordpress-to-octopress</id>
+    <content type="html"><![CDATA[<p>今天心血來潮的，把以前在 <a href="http://cssula.twgg.org">CSsula 機房</a>寫的文章全部搬到現在的 Octopress 了。我覺得比較麻煩的地方在於文章標題出現中文的時候，又沒有設定 post_name 時，就會以 <code>yyyy-mm-dd-中文字.markdown</code> 的格式儲存。而這個當然無解，只好手動一個一個改檔名了Orz</p>
+
+<p>Wordpress 的的文章全部存在 wp_posts table 裡，如果要對應到，Octopress 的 yaml 設定的話，需要用到 post_title、post_date、post_content 這三個 column。其中 post_date 的資料型態是 datetime，我原本以為是字串導致運作時出了一點差錯:P</p>
+
+<p>我寫了一個程式完成這項工作，他可以作到三件事情：</p>
+
+<!-- more -->
+
+
+<ol>
+<li>把所有在資料庫中屬於我的文章，轉成檔案存至 _posts 資料夾</li>
+<li>在轉換過程中 wordpress 用到的圖片，下載下來，存至 images/cssula-blog 資料夾</li>
+<li>在轉換過程中將所有的 <code>&lt;img src=""&gt;</code> 轉成 <code>{% img /images/cssula-blog %}</code></li>
+</ol>
+
+
+<p>這是我粗糙的程式碼，程式碼中大寫的部份可以改成別的資料，這東西可以寫得更完善，達到無痛搬家。我想如果網路上沒有開源項目，也許考慮奉獻看看（總之得先看看其他人怎麼寫吧）。</p>
+
+<p>``` ruby Ruby code to migrate from Wordpress to Octopress.
+require 'mysql2'
+require 'open-uri'</p>
+
+<p>def create_post datetime, title, content
+  date = datetime.strftime("%Y-%m-%d")
+  time = datetime.strftime("%H:%M:%S")
+  File.open("YOUR_OCTOPRESS_ROOT/source/_posts/#{date}-#{title}.markdown", "w"){|f|</p>
+
+<pre><code>yaml = &lt;&lt;eos
+</code></pre>
+
+<hr />
+
+<p>layout: post
+title: "#{title}"
+date: #{date} #{time}
+comments: true</p>
+
+<h2>categories:</h2>
+
+<p>eos</p>
+
+<pre><code>content.gsub!(/&lt;img[^&gt;]*src="([^"]*)"[^&gt;]*&gt;/i){|match|
+  # open the image
+  filename = nil
+  open($1){|ff|
+    filename = $1[/\/([^\/]*)$/, 1]
+    # save image
+    File.open("YOUR_OCTOPRESS_ROOT/source/images/cssula-blog/#{filename}", "wb"){|fff|
+      fff.write(ff.read)
+    }
+  }
+  # replace image tag into plugin style
+  "{% img /images/cssula-blog/#{filename} %}"
+}
+f.write(yaml+content)
+</code></pre>
+
+<p>  }
+end</p>
+
+<p>client = Mysql2::Client.new(
+  :host => "YOUR_HOST",
+  :username => "YOUR_USERNAME",
+  :password=>"YOUR_PASSWORD",
+  :database=>"YOUR_DATABASE_NAME"
+)</p>
+
+<p>client.query("select * from wp_posts where post_type='post' &amp;&amp; post_author=3 &amp;&amp; post_status='publish';").each do |row|
+  begin</p>
+
+<pre><code>create_post row["post_date"], row["post_title"], row["post_content"]
+</code></pre>
+
+<p>  rescue</p>
+
+<pre><code>create_post row["post_date"], "Unknown title", row["post_content"]
+</code></pre>
+
+<p>  end
+end
+```</p>
+
+<p>我在這邊提示一下我下的 query：</p>
+
+<p><code>sql
+select * from wp_posts where post_type='post' &amp;&amp; post_author=3 &amp;&amp; post_status='publish';
+</code></p>
+
+<ul>
+<li><code>post_type='post'</code>一定要加上去，否則 page 和 revision 都會被挖出來</li>
+<li><code>post_status='publish'</code> 則表示已發布的文章，如果你的草稿也想一起導入，就把這個拿掉，如果只想導入草稿則改成 <code>draft</code></li>
+<li><code>post_author=3</code> 表示只導出某個作者的文章。</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在 Octopress 顯示目錄與標籤雲]]></title>
+    <link href="http://tonytonyjan.github.com/2012/02/13/category-list-and-tag-cloud/"/>
+    <updated>2012-02-13T00:34:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/02/13/category-list-and-tag-cloud</id>
+    <content type="html"><![CDATA[<p>正在苦惱 octopress 沒有可以顯示所有目錄地外掛時，在<a href="http://blog.eddie.com.tw/2011/12/05/add-catetories-to-sidebar-in-octopress/">高見龍前輩的網誌上取到西經</a>（看不懂的人，建議先閱讀過 <a href="https://github.com/mojombo/jekyll/wiki/Plugins">jekll plugin</a>）。但由於這種解在 <code>rake preview</code> 時會失敗，於是我開始撰寫 tag 版本。</p>
+
+<p>嗯……好險我沒有寫完，因為我後來又發現在底下的回覆，tokkonoPapa 分享了一個 <a href="https://github.com/tokkonopapa/octopress-tagcloud">repository</a>，和我想要做的東西一模一樣。當然，為了不重造輪子，我的網誌就採用了 tokkonoPapa 整理後的程式碼。</p>
+
+<p>使用方式只要將三個檔案放在對應的位置即可，但要注意的是必須在 _config.yml 中設定 default_asides。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在 Octopress 加上近期回覆]]></title>
+    <link href="http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress/"/>
+    <updated>2012-02-12T19:14:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress</id>
+    <content type="html"><![CDATA[<p>octopress 內建的回覆外掛是 <a href="http://disqus.com">disqus</a>。但卻沒有提供在 asides 顯示近期回應的功能，加上我在網路上查不太到別人的寫法，於是我就自己寫了一個，也許對一些人有幫助：</p>
+
+<p>``` html \source_includes\custom\asides\recent_comments.html
+{% if site.disqus_short_name and page.comments != false %}
+<section>
+  <h1>近期回覆</h1>
+  <script type="text/javascript"></p>
+
+<pre><code>function recent_comments(obj){
+  if(obj.response.length){
+    resault = '&lt;ul&gt;';
+    obj.response.forEach(function(response){
+      resault += '&lt;li&gt;';
+      resault += '&lt;a href="'+response.author.profileUrl+'"&gt;&lt;img src="'+response.author.avatar.permalink+'" width=32 height=32 style="float: left; margin-right: 5px;"&gt;&lt;/a&gt;';
+      resault += '&lt;a href="'+response.author.profileUrl+'"&gt;'+response.author.name+'&lt;/a&gt;：';
+      resault += '&lt;span&gt;'+response.message+'&lt;/span&gt;&lt;br&gt;'
+      resault += '&lt;a href="'+response.thread.link+'"&gt;'+response.thread.title+'&lt;/a&gt;&lt;br&gt;'
+      resault += 'at &lt;a href="'+response.url+'"&gt;'+response.createdAt+'&lt;/a&gt;'
+      resault += '&lt;/li&gt;';
+    });
+    resault += '&lt;/ul&gt;';
+    document.write(resault);
+  }else{
+    document.write("目前沒有回覆");
+  }
+};
+</code></pre>
+
+<p>  </script>
+  <script type="text/javascript" src="http://disqus.com/api/3.0/forums/listPosts.jsonp?forum=tonytonyjan-blog&api_key=IVQOSOjZknRNZi3rYa3gxFA5CCLjuGP9ojHi3TSeUenFl2mckhh3gl9k9NqGDetu&related=thread&callback=recent_comments"></script>
+</section>
+{% endif %}
+```</p>
+
+<p>備註：需要用到 <a href="http://disqus.com">disqus</a> 提供的 <a href="http://disqus.com/api">API</a>。</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,489 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>在FreeBSD上寫masm - 不歸錄</title>
+  <meta name="author" content="大兜">
+
+  
+  <meta name="description" content="系上要用masm交作業，然而我的系統是FreeBSD，由於不想灌windows，而有了這個替代方案&#8230; 先看看組語言到底有哪些種類 彙編語言&nbsp;&nbsp;&nbsp;OS&nbsp;&nbsp;&nbsp;開放原始碼&nbsp;&nbsp;&nbsp;許可證&nbsp;& &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tonytonyjan.github.com/2010/02/26/88">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="不歸錄" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-29458592-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">不歸錄</a></h1>
+  
+    <h2>程式X鋼琴X雙馬尾</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tonytonyjan.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">首頁</a></li>
+  <li><a href="/blog/archives">文章列表</a></li>
+  <li><a href="/blog/about">關於我</a></li>
+  <li><a href="/blog/works">作品集</a></li>
+  <li><a href="/blog/quotes">兜語錄</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">在FreeBSD上寫masm</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-02-26T08:53:50+08:00" pubdate data-updated="true">Feb 26<span>th</span>, 2010</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>系上要用masm交作業，然而我的系統是FreeBSD，由於不想灌windows，而有了這個替代方案&#8230;</p>
+
+
+<p>先看看組語言到底有哪些種類</p>
+
+
+<table id="sortable_table_id_0" class="wikitable sortable" style="font-size: 85%; text-align: center; width: 500px; height: 386px;"><tbody><tr><th><a href="http://zh.wikipedia.org/zh-tw/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80" title="彙編語言">彙編語言</a>&nbsp;&nbsp;<a href="http://zh.wikipedia.org/zh-tw/%E7%B5%84%E5%90%88%E8%AA%9E%E8%A8%80%E5%88%97%E8%A1%A8#" class="sortheader" onclick="ts_resortTable(this);return false;"><span class="sortarrow">&nbsp;</span></a></th><th><a href="http://zh.wikipedia.org/zh-tw/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F" title="作業系統">OS</a>&nbsp;&nbsp;<a href="http://zh.wikipedia.org/zh-tw/%E7%B5%84%E5%90%88%E8%AA%9E%E8%A8%80%E5%88%97%E8%A1%A8#" class="sortheader" onclick="ts_resortTable(this);return false;"><span class="sortarrow">&nbsp;</span></a></th><th><a href="http://zh.wikipedia.org/zh-tw/%E5%BC%80%E6%94%BE%E6%BA%90%E4%BB%A3%E7%A0%81" title="開放原始碼">開放原始碼</a>&nbsp;&nbsp;<a href="http://zh.wikipedia.org/zh-tw/%E7%B5%84%E5%90%88%E8%AA%9E%E8%A8%80%E5%88%97%E8%A1%A8#" class="sortheader" onclick="ts_resortTable(this);return false;"><span class="sortarrow">&nbsp;</span></a></th><th><a href="http://zh.wikipedia.org/zh-tw/%E8%BD%AF%E4%BB%B6%E8%AE%B8%E5%8F%AF%E8%AF%81" title="軟體許可證">許可證</a>&nbsp;&nbsp;<a href="http://zh.wikipedia.org/zh-tw/%E7%B5%84%E5%90%88%E8%AA%9E%E8%A8%80%E5%88%97%E8%A1%A8#" class="sortheader" onclick="ts_resortTable(this);return false;"><span class="sortarrow">&nbsp;</span></a></th><th><a href="http://zh.wikipedia.org/zh-tw/X86-64" title="X86-64">x86-64</a>&nbsp;&nbsp;<a href="http://zh.wikipedia.org/zh-tw/%E7%B5%84%E5%90%88%E8%AA%9E%E8%A8%80%E5%88%97%E8%A1%A8#" class="sortheader" onclick="ts_resortTable(this);return false;"><span class="sortarrow"></span></a></th><th>積極開發&nbsp;&nbsp;<a href="http://zh.wikipedia.org/zh-tw/%E7%B5%84%E5%90%88%E8%AA%9E%E8%A8%80%E5%88%97%E8%A1%A8#" class="sortheader" onclick="ts_resortTable(this);return false;"><span class="sortarrow"></span></a></th></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=A86_%28software%29&amp;action=edit&amp;redlink=1" class="new" title="A86 (software) （頁面未存在）">A86/A386</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><a href="http://zh.wikipedia.org/zh-tw/%E4%B8%93%E6%9C%89%E8%BD%AF%E4%BB%B6" title="專有軟體">專有軟體</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td></tr><tr><th><a href="http://www.develsoftware.com/index.php/en/download" class="external text" rel="nofollow">DevelSoftware Assembler</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/Linux" title="Linux">Linux</a>, <a href="http://zh.wikipedia.org/zh-tw/Unix-like" title="Unix-like" class="mw-redirect">Unix-like</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><a href="http://zh.wikipedia.org/zh-tw/%E5%85%8D%E8%B4%B9%E8%BD%AF%E4%BB%B6" title="免費軟體" class="mw-redirect">免費軟體</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=FASM&amp;action=edit&amp;redlink=1" class="new" title="FASM （頁面未存在）">FASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a>, <a href="http://zh.wikipedia.org/zh-tw/Linux" title="Linux">Linux</a>, <a href="http://zh.wikipedia.org/zh-tw/Unix-like" title="Unix-like" class="mw-redirect">Unix-like</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td><a href="http://zh.wikipedia.org/zh-tw/BSD%E8%AE%B8%E5%8F%AF%E8%AF%81" title="BSD許可證">BSD許可證</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=GNU_Assembler&amp;action=edit&amp;redlink=1" class="new" title="GNU Assembler （頁面未存在）">GAS</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Unix-like" title="Unix-like" class="mw-redirect">Unix-like</a>, <a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td><a href="http://zh.wikipedia.org/zh-tw/GNU%E9%80%9A%E7%94%A8%E5%85%AC%E5%85%B1%E8%AE%B8%E5%8F%AF%E8%AF%81" title="GNU通用公共許可證">GNU通用公共許可證</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://www.jorgon.freeserve.co.uk/" class="external text" rel="nofollow">GoAsm</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><a href="http://zh.wikipedia.org/zh-tw/%E5%85%8D%E8%B4%B9%E8%BD%AF%E4%BB%B6" title="免費軟體" class="mw-redirect">免費軟體</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=High_Level_Assembly&amp;action=edit&amp;redlink=1" class="new" title="High Level Assembly （頁面未存在）">HLA</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/Linux" title="Linux">Linux</a>, <a href="http://zh.wikipedia.org/zh-tw/FreeBSD" title="FreeBSD">FreeBSD</a>, <a href="http://zh.wikipedia.org/zh-tw/Mac_OS_X" title="Mac OS X">Mac OS X</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td><a href="http://zh.wikipedia.org/zh-tw/%E5%85%AC%E6%9C%89%E9%A2%86%E5%9F%9F" title="公有領域">公有領域</a></td><td><i><b>?</b></i></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://www.japheth.de/JWasm.html" class="external text" rel="nofollow">JWASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td>Sybase 開放公共許可證 <a href="http://zh.wikipedia.org/w/index.php?title=Watcom&amp;action=edit&amp;redlink=1" class="new" title="Watcom （頁面未存在）">Watcom</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://lzasm.hotbox.ru/" class="external text" rel="nofollow">LZASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><a href="http://zh.wikipedia.org/zh-tw/%E5%85%8D%E8%B4%B9%E8%BD%AF%E4%BB%B6" title="免費軟體" class="mw-redirect">免費軟體</a></td><td><i><b>?</b></i></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://zh.wikipedia.org/zh-tw/MASM" title="MASM">MASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><a href="http://zh.wikipedia.org/zh-tw/%E4%B8%93%E6%9C%89%E8%BD%AF%E4%BB%B6" title="專有軟體">專有軟體</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是<span class="reference plainlinksneverexpand" id="ref_MASM"></span></td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=Netwide_Assembler&amp;action=edit&amp;redlink=1" class="new" title="Netwide Assembler （頁面未存在）">NASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/Linux" title="Linux">Linux</a>, <a href="http://zh.wikipedia.org/zh-tw/Mac_OS_X" title="Mac OS X">Mac OS X</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a>, <a href="http://zh.wikipedia.org/zh-tw/OS/2" title="OS/2">OS/2</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td><a href="http://zh.wikipedia.org/zh-tw/BSD%E8%AE%B8%E5%8F%AF%E8%AF%81" title="BSD許可證">BSD許可證</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=POASM&amp;action=edit&amp;redlink=1" class="new" title="POASM （頁面未存在）">POASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/Windows_Mobile" title="Windows Mobile">Windows Mobile</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><a href="http://zh.wikipedia.org/zh-tw/%E5%85%8D%E8%B4%B9%E8%BD%AF%E4%BB%B6" title="免費軟體" class="mw-redirect">免費軟體</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=TASM&amp;action=edit&amp;redlink=1" class="new" title="TASM （頁面未存在）">TASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><a href="http://zh.wikipedia.org/zh-tw/%E4%B8%93%E6%9C%89%E8%BD%AF%E4%BB%B6" title="專有軟體">專有軟體</a></td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><i><b>?</b></i><span class="reference plainlinksneverexpand" id="ref_TASM"></span></td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=WASM_%28software%29&amp;action=edit&amp;redlink=1" class="new" title="WASM (software) （頁面未存在）">WASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a>, <a href="http://zh.wikipedia.org/zh-tw/OS/2" title="OS/2">OS/2</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td>Sybase Open <a href="http://zh.wikipedia.org/w/index.php?title=Watcom&amp;action=edit&amp;redlink=1" class="new" title="Watcom （頁面未存在）">Watcom</a> Public License</td><td style="background: #ff9090 none repeat scroll 0% 0%; color: black;" class="table-no">否</td><td><i><b>?</b></i></td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=Tiny_C_Compiler&amp;action=edit&amp;redlink=1" class="new" title="Tiny C Compiler （頁面未存在）">TCCASM</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Unix-like" title="Unix-like" class="mw-redirect">Unix-like</a>, <a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td><a href="http://zh.wikipedia.org/zh-tw/LGPL" title="LGPL" class="mw-redirect">LGPL</a></td><td><i><b>?</b></i></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr><tr><th><a href="http://zh.wikipedia.org/w/index.php?title=Yasm&amp;action=edit&amp;redlink=1" class="new" title="Yasm （頁面未存在）">Yasm</a></th><td><a href="http://zh.wikipedia.org/zh-tw/Microsoft_Windows" title="Microsoft Windows">Windows</a>, <a href="http://zh.wikipedia.org/zh-tw/DOS" title="DOS">DOS</a>, <a href="http://zh.wikipedia.org/zh-tw/Linux" title="Linux">Linux</a>, <a href="http://zh.wikipedia.org/zh-tw/Mac_OS_X" title="Mac OS X">Mac OS X</a>, <a href="http://zh.wikipedia.org/zh-tw/Unix-like" title="Unix-like" class="mw-redirect">Unix-like</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td><a href="http://zh.wikipedia.org/zh-tw/BSD_licenses" title="BSD licenses" class="mw-redirect">BSD</a></td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td><td style="background: #90ff90 none repeat scroll 0% 0%; color: black;" class="table-yes">是</td></tr></tbody></table>
+
+
+<p>（唯一一個有標注FreeBSD的是HLA&#8230;QQ）</p>
+
+
+<p>%portinstall -c emulators/dosbox</p>
+
+
+<p>%rehash</p>
+
+
+<p>%mkdir ~/learnASM</p>
+
+
+<p>%mkdir ~/learnASM/tools</p>
+
+
+<p>%mkdir ~/learnASM/tools/masm5</p>
+
+
+<p>從網路上下載masm5.0(太新的版本可能不能跑)</p>
+
+
+<p>我是從<a href="http://download.pchome.net/development/linetools/detail-9028.html">這裡</a>下載的</p>
+
+
+<p>把含有.exe檔的目錄下所有的檔案放在~/learnASM/tools/masm5</p>
+
+
+<p>%cd ~/learnASM</p>
+
+
+<p>%echo &#8220;dosbox -c &#8216;mount c: ./&#8217; -c &#8216;path %path%;c:\tools;c:\tools\masm5&#8217;&#8221; &gt; runDosbox.sh </p>
+
+
+<p>%chmod +x runDosbox.sh</p>
+
+
+<p>%./runDosbox.sh</p>
+
+
+<p>到目前為止dosbox已經具備組譯的能力，至於怎麼使用masm&#8230;</p>
+
+
+<p>首先要有一個.asm原碼，這裡用hello.asm，我是先用vim或vi在learnASM/編輯，然後對著dosbox按Ctrl+F4重新整理，不然新增的檔案dosbox會找不到。</p>
+
+
+<p>&#8212;hello.asm&#8212;</p>
+
+
+<p>&nbsp;&nbsp; .model small<br />&nbsp;&nbsp; .stack<br />&nbsp;&nbsp; .data<br />&nbsp;&nbsp; message&nbsp;&nbsp; db &#8220;Hello world, I&#8217;m learning Assembly !!!&#8221;, &#8220;$&#8221; <br />&nbsp;&nbsp; <br />&nbsp;&nbsp; .code<br />&nbsp;&nbsp; <br />&nbsp;&nbsp; main&nbsp;&nbsp; proc<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mov&nbsp;&nbsp; ax,seg message<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mov&nbsp;&nbsp; ds,ax<br />&nbsp;&nbsp; <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mov&nbsp;&nbsp; ah,09<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lea&nbsp;&nbsp; dx,message<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int&nbsp;&nbsp; 21h <br />&nbsp;&nbsp; <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mov&nbsp;&nbsp; ax,4c00h<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int&nbsp;&nbsp; 21h <br />&nbsp;&nbsp; main&nbsp;&nbsp; endp</p>
+
+
+<p>&nbsp;&nbsp; end main</p>
+
+
+<p>&#8212;hello.asm&#8212;</p>
+
+
+<p>進入dosbox之後</p>
+
+
+<p>&gt;c:</p>
+
+
+<p>&gt;masm hello.asm&nbsp; //之後按三次回車</p>
+
+
+<p>Object filename [HELLO.OBJ]:</p>
+
+
+<p>Source listing [NUL.LST]:</p>
+
+
+<p>Cross-reference [NUL.CRF]:</p>
+
+
+<p>這時會產生一個 HELLO.OBJ檔案</p>
+
+
+<p>&gt;link HELLO.OBJ&nbsp; //按三次回車</p>
+
+
+<p>Run File [HELLO.EXE]:</p>
+
+
+<p>List File [NUL.MAP]:</p>
+
+
+<p>Libraries [.LIB]:</p>
+
+
+<p>&gt;HELLO.EXE</p>
+
+
+<p>Hello world, I&#8217;m learning Assembly !!!</p>
+
+
+<p>成功^^</p>
+
+
+<p>&nbsp;</p>
+
+
+<p>ps.</p>
+
+
+<p>每次要組譯都要打兩行指令，按六次回車不免太麻煩</p>
+
+
+<p>於是可以寫一個mk.bat放在toos/masm/裡面</p>
+
+
+<p>&#8212;mk.bat&#8212;</p>
+
+
+<p>masm.exe %1.asm,%1.obj,nul.lst,nul.crf</p>
+
+
+<p>link %1.obj,%1.exe,nul.map,, </p>
+
+
+<p>&#8212;mk.bat&#8212;</p>
+
+
+<p>以後只要輸入下面指令就好了</p>
+
+
+<p>&gt;mk hello //不要加副檔名</p>
+
+
+<p>&nbsp;</p>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">大兜</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-02-26T08:53:50+08:00" pubdate data-updated="true">Feb 26<span>th</span>, 2010</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/freebsd/'>FreeBSD</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://tonytonyjan.github.com/2010/02/26/88/" data-via="" data-counturl="http://tonytonyjan.github.com/2010/02/26/88/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/2010/02/23/89/" title="Previous Post: 第一次當助教">&laquo; 第一次當助教</a>
+      
+      
+        <a class="basic-alignment right" href="/2010/03/04/87/" title="Next Post: Virtualbox for Freebsd">Virtualbox for Freebsd &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <iframe src="http://free.timeanddate.com/countdown/i30p7ijg/n241/cf114/cm0/cu4/ct0/cs1/ca0/co1/cr0/ss0/cac000/cpc000/pcfff/tc66c/fs100/szw256/szh108/tat%E8%B7%9D%E9%9B%A2%E7%95%A2%E6%A5%AD%E5%85%B8%E7%A6%AE%E2%80%A6/tac000/tpt%E6%88%91%E7%95%A2%E6%A5%AD%E4%BA%86%EF%BC%81/tpc000/iso2012-06-09T00:00:00" frameborder="0" width="256" height="108"></iframe>
+</section><section>
+  <h1>給我個鼓勵吧＝）</h1>
+  
+    <div style="float: left;" class="g-plusone" data-size="tall" data-annotation="inline" data-href="http://tonytonyjan.heroku.com" data-width="260"></div>
+  
+  
+    <div class="fb-like" data-href="http://tonytonyjan.heroku.com" data-send="false" data-width="260" data-show-faces="true"></div>
+  
+  
+    <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://tonytonyjan.heroku.com" data-text="不歸錄" data-via="tonytonyjan" data-size="large">Tweet</a>
+  
+</section><section>
+  <h1>關於我</h1>
+  <a href="http://www.facebook.com/tonytonyjan"><img src="http://photos-a.ak.fbcdn.net/hphotos-ak-ash4/196443_10150123214557620_714547619_6717277_2177303_a.jpg" alt="很帥的照片" title="大兜本尊"></a>
+  <p>嗨！我叫大兜，一個追求幸福快樂的反逆工程師，喜歡程式、旅行、彈琴和公益。</p>
+</section>
+<section>
+  <h1>音樂作品</h1>
+  <iframe marginwidth='0' marginheight='0' src='http://vlog.xuite.net/embed/OE5JOFRuLTE2MzA2NTguZmx2?v=1.0.1&ar=1' scrolling='no' frameborder='0' width='260' height='85'></iframe>
+  <p>我同時也是個業餘的三腳貓音樂創作者，這是我最喜歡的自創曲之一，我在 <a href="http://www.youtube.com/tonytonyjan">YouTube</a> 放了許多作品，歡迎來欣賞＝）</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2012/05/01/indexer-for-octopress/">將 Octopress Page 依照標題自動索引</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/28/sleeping-and-eating/">吃、睡與生活</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/28/lee-shou-quan/">李壽全與他的音樂</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/27/display-recent-comments-in-octopress-2/">在 Octopress 加上近期回覆（二）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/03/raise-my-family/">齊家</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/18/new-light-plan/">新光計畫</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/08/using-sinatra-for-local-javascript-development/">使用 Sinatra、HFS 在本地開發 Javascript</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/06/shortcut-to-open-command-prompt-in-current-directory/">在目錄下打開命令提示字元</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/05/cooperation-and-connection/">團隊、溝通管道</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/03/string-and-symbol-in-controller/">params["key"] 和 params[:key]</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h1>近期回覆</h1>
+  <div id="recentcomments" class="dsq-widget"><h2 class="dsq-widget-title">Recent Comments</h2><script type="text/javascript" src="http://tonytonyjan-blog.disqus.com/recent_comments_widget.js?num_items=5&hide_avatars=0&avatar_size=48&excerpt_length=200"></script></div><a href="http://disqus.com/">Powered by Disqus</a>
+</section>
+<section>
+  <h1>文章分類</h1>
+    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.33149171270718%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.65745856353591%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(181)</a> <a href='/categories/disqus' style='font-size: 100.66298342541437%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.32596685082873%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.33149171270718%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.65193370165746%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.32044198895028%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.33149171270718%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.33149171270718%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 114.25414364640883%'>Life(43)</a> <a href='/categories/music' style='font-size: 100.33149171270718%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.65745856353591%'>Octopress(5)</a> <a href='/categories/octopress-' style='font-size: 100.33149171270718%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.66298342541437%'>Rails(2)</a> <a href='/categories/regex' style='font-size: 100.33149171270718%'>Regex(1)</a> <a href='/categories/revision-control' style='font-size: 100.33149171270718%'>Revision-control(1)</a> <a href='/categories/ruby' style='font-size: 100.33149171270718%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.33149171270718%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.33149171270718%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.33149171270718%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.33149171270718%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.60773480662984%'>Works(32)</a> </span>
+</section>
+
+
+<section>
+  <h1>噗浪動態</h1>
+  <div style="width:210px; height:375px;">
+    <iframe src="http://www.plurk.com/getWidget?uid=5874158&amp;h=375&amp;w=210&amp;u_info=2&amp;bg=5E5E5E&tl=D3D3D3" width="210" frameborder="0" height="375" scrolling="no"></iframe>
+    <div style="float: right; padding: 1px;">
+      <a href="http://plurk.com/" target="_blank" style="font-size: 10px !important; color: #999 !important; border: none; text-decorate: none;" title="Plurk - A Social Journal for your life">Plurk.com</a>
+    </div>
+  </div>
+</section>
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/106993981418226624133?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - 大兜 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'tonytonyjan-blog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tonytonyjan.github.com/2010/02/26/88/';
+        var disqus_url = 'http://tonytonyjan.github.com/2010/02/26/88/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

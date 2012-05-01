@@ -1,0 +1,1133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[不歸錄]]></title>
+  <link href="http://tonytonyjan.github.com/atom.xml" rel="self"/>
+  <link href="http://tonytonyjan.github.com/"/>
+  <updated>2012-05-01T23:15:46+08:00</updated>
+  <id>http://tonytonyjan.github.com/</id>
+  <author>
+    <name><![CDATA[大兜]]></name>
+    <email><![CDATA[tonytonyjan@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[將 Octopress Page 依照標題自動索引]]></title>
+    <link href="http://tonytonyjan.github.com/2012/05/01/indexer-for-octopress/"/>
+    <updated>2012-05-01T13:30:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/05/01/indexer-for-octopress</id>
+    <content type="html"><![CDATA[<ul>
+<li><a href="http://tonytonyjan.github.com/blog/octopress-indexer">範例展示、文件</a></li>
+<li><a href="https://gist.github.com/2565249/6151c81f7af333d5c1d9dd0b2bdcba2c7a966dca">gist</a></li>
+</ul>
+
+
+<h2>用法懶人包</h2>
+
+<ol>
+<li>下載 <a href="https://gist.github.com/gists/2565249/download">Indexer for Octopress</a>。</li>
+<li>將 <code>indexer.rb</code> 複製到 <code>plugins</code> 目錄下。</li>
+<li><p>新增 <code>source\_includes\custom\asides\indexer.html</code>。</p>
+
+<pre><code>{% if page.indexer == true %}
+  &lt;section&gt;
+  &lt;h1&gt;Catalog&lt;/h1&gt;
+  {{ page.indexer_aside }}
+  &lt;/section&gt;
+{% else %}
+  {% if site.page_asides.size %}
+    {% include_array default_asides %}
+  {% endif %}
+{% endif %}
+</code></pre></li>
+<li><p>編輯 <code>_config.yml</code>。</p>
+
+<pre><code># Each layout uses the default asides, but they can have their own asides instead. Simply uncomment the lines below
+# and add an array with the asides you want to use.
+# blog_index_asides:
+# post_asides:
+page_asides: [custom/asides/indexer.html] # 加上這個
+</code></pre></li>
+<li><p>完成！之後只要在你需要索引的 page 上方 YAML 區塊加上 <code>indexer: true</code>，右方欄位就會自己索引了。</p></li>
+</ol>
+
+
+<!-- more -->
+
+
+<h2>為什麼有這種需求？</h2>
+
+<p>有想過用 Octopress 寫說明文件，雖然用 Markdown 可以很方便的杜撰，但文章只要一長了，要找標題特定的內容不用滑鼠滾輪一個一個找，就得用搜尋的，而且無法一次觀看到整篇文章的大綱。這時候最適合用索引來解決這個問題，而索引的優點之多，我想有寫過教學文件或是 wiki 的人應該是最清楚不過了。</p>
+
+<p>但是 Octopress 如果要做到這樣，你要嘛用 Textile 取代 Mardown，如果用 Markdown 就還要徒手寫 tag，例如：</p>
+
+<pre><code>&lt;h2 id="getting-start"&gt;起步走&lt;/h2&gt;
+</code></pre>
+
+<p><strong>這會讓寫作的爽度降低。</strong></p>
+
+<p>但有人可能會說改用 Textile 就好了，確實，但麻煩的在後面：就算你用 Textile 好了，你還得為你的文件特地寫一個 aside，裡面有個兩層的 list，每個標題都有 <code>&lt;a&gt;</code> 包起來，還得自己寫 <code>href="#xxx"</code>。</p>
+
+<p><strong>這更讓寫作的爽度降到冰點。</strong></p>
+
+<p>好吧，萬一你是個很有耐心的人，你確實的在文章的 heading 都加上了 ID，且也自己寫了一個 asides 放在 <code>source\_includes\custom\asides\</code> 之下。但當你要設定 <code>_config.yml</code> 時發現：</p>
+
+<pre><code>page_asides: [custom/asides/xxx.html]
+</code></pre>
+
+<p><img src="http://tonytonyjan.github.com/images/dead-eyes.jpg"></p>
+
+<p>原來 page asides 是全局的，意思是接下來要處理的問題：你要怎麼在不影響其他的 page 的情況下，在特定 page 顯示特定 page？</p>
+
+<p>這時候我就期望尋求一個方法，讓寫作只要專心在 heading 的編排就好，不用理會索引這樣瑣碎的工作。</p>
+
+<h2>你寫這個幹麼？</h2>
+
+<p>當然是為了解決自己問題（但也有可能同時是別人的問題）。</p>
+
+<p>因為翻譯 Rails Guide 的關係，這幾天常常光顧 <a href="https://github.com/lifo/docrails">docrails</a>，以及 <a href="https://github.com/rails/rails">Rails</a> 的倉庫。對 Rilas Guide 生成文件的方式感到好奇，以 <a href="http://guides.rubyonrails.org/getting_started.html">Getting Start with Rails</a> 這篇為例吧，右方的索引全部對應到左方的 h3 和 h4，也就是如果有個 heading 長這樣：</p>
+
+<pre><code>&lt;h3 id="guide-assumptions"&gt;1 Guide Assumptions&lt;/h3&gt;
+</code></pre>
+
+<p>那麼右方所有就會有對應的</p>
+
+<pre><code>&lt;li&gt;&lt;a href="#guide-assumptions"&gt;Guide Assumptions&lt;/a&gt;&lt;/li&gt;
+</code></pre>
+
+<p>但實際上，在 Textile 文件中 他們實際是這樣寫的：</p>
+
+<pre><code>h3. Guide Assumptions
+</code></pre>
+
+<p>研究了他們的原始碼，發現 Rails Guide 的 generator 在 render 之前做了這兩件事情：</p>
+
+<ol>
+<li><p>將所有的 heading 賦予同名 id。</p>
+
+<p>也就是將 <code>h3. Guide Assumptions</code> 替換成 <code>h3(#guide-assumptions). Guide Assumptions</code>。</p></li>
+<li><p>遞迴的方式產生清單。</p>
+
+<p>可以分析 <code>&lt;h3&gt;</code> 下的 <code>&lt;h4&gt;</code>，做出最多兩層的索引清單放在右方。</p></li>
+</ol>
+
+
+<p>我馬上想到的一件事情就是，這功能可以用在 Octopress 上。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[吃、睡與生活]]></title>
+    <link href="http://tonytonyjan.github.com/2012/04/28/sleeping-and-eating/"/>
+    <updated>2012-04-28T19:10:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/04/28/sleeping-and-eating</id>
+    <content type="html"><![CDATA[<p><img src="http://tonytonyjan.github.com/images/birds.jpg"></p>
+
+<p>說實話，睡覺和吃飯對我來說就僅僅只是為了可以活著而已，它們並沒有什麼享受的成份在裡面，生活才有。我想這句話有很多人不認同，但如果你對我這樣的怪人價值觀感興趣，你一定會好奇地繼續看下去。</p>
+
+<p>我覺得我這點就像小孩子一樣，各位不妨回憶一下自己還是個流鼻涕的小屁孩時，這個時期對孩子最重要的工作除了吃、睡之外，大概就是玩了，而且「玩」在小孩心中的地位，甚至遠高於吃和睡。我猜每個人應該都有經驗自己因為執迷於某件事情（也許是想出去騎腳踏車，抑或想和朋友玩遊戲等等），而不想吃飯、睡覺，吵著爸爸媽媽、使性格、哭鬧，而這時父母就得三催四請、甚至責罵的方式「請」你去吃飯、睡覺。</p>
+
+<p>這時候的孩子對世界充滿著好奇，任何事物都是新鮮有趣的（除了吃、睡），而對他們來說，要玩都來不及了，怎麼會有時間去吃飯、睡覺。我想吃飯睡覺的意義，對他們來說只是為了去玩更多的東西吧！而這就是我現在的寫照，吃飯和睡是為了活著。</p>
+
+<p>這不能怪我，誰叫「生活」本身太有趣了XD</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[李壽全與他的音樂]]></title>
+    <link href="http://tonytonyjan.github.com/2012/04/28/lee-shou-quan/"/>
+    <updated>2012-04-28T02:08:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/04/28/lee-shou-quan</id>
+    <content type="html"><![CDATA[<p><img class="right" src="http://tonytonyjan.github.com/images/lee-shou-quan.jpg" width="300"></p>
+
+<p>因為在網路上很少看到有介紹這位大叔的文章，而且我又喜歡他的音樂，加上現在的年輕人壓根沒有聽過這號人物吧？雖然文筆不專業，也想推廣一下這位台灣民歌史上這位不容忽視的角色。</p>
+
+<h2>台灣概念專輯先驅</h2>
+
+<p>概念專輯，顧名思義意曲目全部圍繞同一主題的專輯，而非各個獨立樂曲組成，這種風格在搖滾流行以前，曾在早期爵士到 1950 中段盛一時。最早可以追溯到 1940 年代 <a href="http://en.wikipedia.org/wiki/Woody_Guthrie">Woody Guthrie</a> 的專輯 <a href="http://en.wikipedia.org/wiki/Dust_Bowl_Ballads">Dust Bowl Ballads</a>，這個專輯以半自傳的方式記載在 Guthrie 在<a href="http://en.wikipedia.org/wiki/Dust_Bowl">黑色風暴時期</a>目睹加州移民勞工遭遇的經濟浩劫。</p>
+
+<p>扯遠了:P</p>
+
+<p>我想分享的是李壽全唯一一張個人概念專輯「八又二分之一」，起初聽到這個名字難免想到費里尼的同名電影，以及電影中充滿實驗性的拍攝手法。李壽全以此命名也不外乎有點「實驗」的意味在其中。而專輯訴說著前解嚴時代的台北城市印象，充滿著現代感與人文關懷，亦反應現代人普世的價值。這個專輯會讓你覺得過了二十年再來聽，仍不退流行！</p>
+
+<p>在後民歌時期裡，許多音樂創作人，都試圖找出自己的路，不論是堅持民歌曲式，或者是走著羅大佑式的批判路線，很少有人能在音樂形式上 面另闢一番天地。然而，只出過一張專輯的李壽全，卻絕對是個例外。</p>
+
+<p>以下推薦一些我喜歡的曲目，有興趣的人可以自己尋找更多的作品。</p>
+
+<!-- more -->
+
+
+<h2>張三的歌</h2>
+
+<p>這首歌大概是李壽全最著名的，記得我第一次聽到這首歌曲時是來自電影「父子關係」，本以為只是為了電影劇情需要所寫，不料這首歌背後有個悲傷的故事。</p>
+
+<p>其實這首不是李壽全寫，而是他相識二十多年的好友張子石，在當年離婚帶著兩個孩子在美國顛沛流離過著流浪的生活時寫下，歌詞正反應著他的艱困生活，但即使如此，他振作的告訴孩子世界仍有希望與光亮。最後由李壽全詮釋這首歌，貼切重現當年張子石對孩子的心聲，才因此成了「父子關係」主題曲，還入圍 23 屆金馬獎最佳電影插曲。</p>
+
+<p>題外：我好喜歡他唱「翔」、「傷」這些最後一個字的時候所發的個人特色尾音>///&lt;</p>
+
+<iframe width="480" height="360" src="http://www.youtube.com/embed/vA7onJLHtsM" frameborder="0" allowfullscreen></iframe>
+
+
+<pre><code>作詞：張子石、作曲：張子石
+
+我要帶你到處去飛翔，走遍世界各地去觀賞
+沒有煩惱沒有那悲傷，自由自在身心多開朗
+
+忘掉痛苦忘掉那地方，我們一起啟程去流浪
+雖然沒有華廈美衣裳，但是心裡充滿著希望
+
+我們要飛到那遙遠地方看一看，這世界並非那麼淒涼
+我們要飛到那遙遠地方望一望，這世界還是一片的光亮
+</code></pre>
+
+<h2>八又二分之一</h2>
+
+<p>與專輯同名的歌曲，正當我覺得這歌詞不像李壽全的風格時，才看到作詞是吳念真啊XD</p>
+
+<p>刻劃在異鄉的都市人打拼的生活，日復一日、年復一年。我認為了二十幾年再來聽，依然不退流行的原因，就是這一首。</p>
+
+<iframe width="480" height="360" src="http://www.youtube.com/embed/M-pJcWmgg3o" frameborder="0" allowfullscreen></iframe>
+
+
+<pre><code>詞：吳念真、曲：李壽全
+
+異鄉的旅店，失眠的清晨
+遠方悠悠響起火車的汽笛
+沈寂的冬夜，晚醉乍醒之際
+冷月下風鈴聲韻淒淒
+
+微雨的城市，塞車的黃昏
+風裡斷續傳來熟悉的旋律
+搬家的前夕，惆悵的情緒
+孤獨翻閱著零散發黃的日記
+
+擁擠的人群，陌生的少女
+似曾相識的面容　拍醒青春的記憶
+動人的電影，暗暗的角落
+一個愁悒的女人，眼裡淚光閃爍
+
+頹喪的日子，午夜的街頭
+卡拉OK的男人，瘖啞的喊著他們的歌
+忙碌的工作，失神的片刻
+電話那頭往日的戀人，生日快樂
+那是九月的午後
+</code></pre>
+
+<h2>我的志願</h2>
+
+<p>這首也是我很喜歡的曲目之一，用詼諧的方式陳述現代的社會價值觀，然後在最後的時候才唱出他的志願，我第一次聽到的時候頓時感動萬分，就是因為這一段我就被這首歌深深吸引住了。</p>
+
+<iframe width="480" height="360" src="http://www.youtube.com/embed/tlieNjRfQ34" frameborder="0" allowfullscreen></iframe>
+
+
+<pre><code>作詞：李壽全、作曲：李壽全
+
+很小的時候，爸爸曾經問我，你長大後要做什麼
+我一手拿著玩具，一手拿著糖果，我長大後要做總統
+
+六年級的時候，老師也曾問我，你長大後要做什麼
+愛迪生的故事，最讓我佩服，我長大要做科學家
+
+慢慢慢慢慢慢慢慢長大以後，認識的人越來越多
+慢慢慢慢慢慢慢慢我才知道，總統只能有一個
+慢慢慢慢慢慢慢慢我才知道，科學家也不太多
+
+中學的時候，作文的題目，你的志願是什麼
+耳邊又響起，母親的叮嚀，醫生、律師都不錯
+
+大學聯考時候，作文題目又是，「我的志願」是什麼
+回想報名時候，心裡毫無選擇，志願填了一百多
+
+沒有煩惱，沒有憂愁，唱出我心裡的歌
+告訴我的孩子，每個人都需要，平平靜靜的生活
+
+慢慢慢慢慢慢慢慢長大以後，認識的人越來越多
+慢慢慢慢慢慢慢慢你會知道，每個人都差不多
+慢慢慢慢慢慢慢慢你會知道，人生就是這麼過
+</code></pre>
+
+<h2>上班族的一日</h2>
+
+<p>這一首再一次用樸實的歌詞反抗現代人制式化的人生。</p>
+
+<iframe width="640" height="360" src="http://www.youtube.com/embed/fo0e38D-I2E" frameborder="0" allowfullscreen></iframe>
+
+
+<pre><code>作詞：呂學海/詹宏志/李壽全、作曲：李學粹
+
+我不再猶豫，推開經理的門
+最後的決定，遞上我的辭呈
+同事都歡呼，羨慕我的選擇
+下沈的電梯，鎖不住憂慮的心
+
+是不是人人都要固定的工作
+是不是人人都要上班的生活
+我不要辦公室裡孤獨和冷漠
+我不要盲目工作喪失了自我
+
+擁擠的電梯，一天過了一天
+臃腫的公車，一年過了一年
+失去的青春，等待老闆諾言
+眼角的皺紋，刻畫著生命疑問
+
+是不是人人都要固定的工作
+是不是人人都要上班的生活
+記不清年輕時候做夢的我
+是否也情願做個無奈的陀螺
+
+也曾經期望，偉大的工作
+也曾經擁有，浪漫的自由
+熟悉的電梯，走出陌生的我
+凌亂的腳步，不知該走向何處
+
+為什麼，你不能夠，勇敢的，堅持自己的選擇。
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在 Octopress 加上近期回覆（二）]]></title>
+    <link href="http://tonytonyjan.github.com/2012/04/27/display-recent-comments-in-octopress-2/"/>
+    <updated>2012-04-27T14:55:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/04/27/display-recent-comments-in-octopress-2</id>
+    <content type="html"><![CDATA[<p>之前在有發過一篇<a href="http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress">在 Octopress 加上近期回覆</a>，我因為找不到有關顯示近期回應的程式碼（搜尋能力有待加強），所以自己徒手寫了一個。想不到今天在 Disqus 管理頁面發現有 widget 可以用，除此之外還有熱門回覆等其他 wedget。</p>
+
+<p>可惡啊……之前做了白工……</p>
+
+<p><img src="http://tonytonyjan.github.com/images/disqus-admin-tools.png"></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[齊家]]></title>
+    <link href="http://tonytonyjan.github.com/2012/04/03/raise-my-family/"/>
+    <updated>2012-04-03T23:09:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/04/03/raise-my-family</id>
+    <content type="html"><![CDATA[<p><img src="http://tonytonyjan.github.com/images/robot.jpg"></p>
+
+<p>寫這篇文章的時候，漫畫社遊剛結束，明明已經很累，正常情況下應該要去睡覺的。但只是覺得有些心事，如果不寫出來或者跟人告解，實在無法好好睡一覺。你說我會有煩惱？是啊，我雖僅次於神但也是人，也會有煩惱，差別在於我自認大概除了家裡的事情之外，沒有事物可以擊垮我吧？</p>
+
+<p>已經確定今年媽媽就會失去工作，屆時家裡將失去唯一的收入來源，除此因為工作的內容越來越艱辛，為了養家而盡力保住工作，到現在無論健康、精神狀態已經處在脆弱的狀態，實在另我於心不忍。同時我卻以延畢半年的代價做了一個極為冒險的決定繼續進修研究所。</p>
+
+<p>幾年前就料到我可能大學畢業後就要馬上接手家裡的經濟來源，所以本來計畫是要在今年畢業後直接當兵，如此會有薪水之外，我的食宿也不用煩惱，等到退伍再找一份可以支撐家裡的穩定工作。然而現在計畫改變成我還要念兩年的書，除非我可以強大到重時進修，同時有一份收入，否則再兩年的研究所對家裡來說仍是負擔，何況第一個半年還要外宿新竹。</p>
+
+<p>面對這個問題有很多解，但因為經濟經驗尚不足以做出決策，目前只求能夠養活自己，學費方面先貸款，訖此還不至於太難；但還要行有餘力去支援家計，我現在其實沒有那樣的自信，而且還不知道靠母親的退休金能還夠撐住這個家多久，這樣的情形，論誰會急也難免吧？</p>
+
+<p>簡言之，這次的轉變將把我從課業為主、經濟其次的狀態對調，兩者兼顧似乎不是這麼簡單，但仍會努力尋求一個最好的平衡。問我害怕嗎？怎麼會害怕呢？我想我現在應該要感到興奮，興奮於終於可以回報育我之人。反正我也不知道我有多強，藉這個機會測試一下剛好。</p>
+
+<p>Show time!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[新光計畫]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/18/new-light-plan/"/>
+    <updated>2012-03-18T13:52:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/18/new-light-plan</id>
+    <content type="html"><![CDATA[<p><img src="http://tonytonyjan.github.com/images/scenery.jpg"></p>
+
+<p>最近參加了交大崔教授發起的新光計畫，每個禮拜要上山一次，替小朋友上課輔，而我被分配到的部落是司馬庫斯。各位可能會覺得既然是部落，想必資源比較貧乏，而我們的計畫就是到許多這樣的地方做輔助教學。</p>
+
+<p>但這樣想只對一半，因為司馬庫斯自從發現了神木之後，吸引大批的觀光客湧入，而部落也很團結的利用這個契機創造了許多觀光收入，使得司馬庫斯的資源比起其他深山的部落來得更豐富，家裡有鋼琴、養魚、有電腦、自己蓋的學校等等。然而面對這樣資源豐富的部落，為什麼我們還要上山去為小朋友上課輔呢？</p>
+
+<p>人力，他們沒有足夠的人力。雖有鋼琴，但缺乏可以教彈的人；有電腦卻缺乏可以教導應用的人；即使有整套棒球具，也缺乏可以教導他們規則與技巧的人。雖然一般情況下，這個問題可以經由聘請外界的人才解決，但最大的問題出在，這是一個從新竹市區開車要花三個鐘頭才能抵達的地方，其中兩半鐘頭的時間是崎嶇的山路，且曲折之程度不遜於坐船，上週我就聽說有個同樣參與計畫的夥伴不到半途就吐的滿地。正因為過於偏遠，以致即使有人想來，知道要經常如此翻山，也只能笑謝了。</p>
+
+<p>我要做的就是在這每週一次的陪伴中，帶給孩子們平實在部落中看不到的事物，也許簡單到只是教教書法、紙藝、琴技；抑或告訴他們怎麼欣賞一幅畫、音樂；重要的是讓他們知道世界是多麼的大，有最高的聖母峰，有埃及金字塔，復活島石像，這些東西是在部落，甚至在台灣是看不到的景緻，但他們卻真實的存在著。而想要探索這些世界之寶，就必須靠著不斷學習，就必須像一塊海綿一般地吸收知識、資訊、外來文化、觀念。</p>
+
+<p>雖然就只有一個學期，我不感奢求我的努力對這些孩子們一定要有什麼改變，只希望我一週一點點的相處之中，孩子們能從我身上，拿走些什麼，即使只有一點點，卻是受用不盡的。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用 Sinatra、HFS 在本地開發 Javascript]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/08/using-sinatra-for-local-javascript-development/"/>
+    <updated>2012-03-08T14:16:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/08/using-sinatra-for-local-javascript-development</id>
+    <content type="html"><![CDATA[<p>寫 Javascript 的時候難免會用到 AJAX 抑或讀檔，尤其現在 HTML5 正熱，常常需要讀取圖片並顯示在 canvas，但麻煩是，瀏覽器會為了安全考量，禁止所有對本地檔案系統的資料的存取（Chrome 自從版本 5 之後，擋住了所有對 <code>http://</code> 以外協定的 AJAX request，其中當然包括 <code>file://</code>）。</p>
+
+<p>這個問題有個很直覺的解法，那就是自己開一個 HTTP server。但只是為了做前端網頁開發，搞個像 Apache 這種重量級的 server 豈不是用大砲打鳥蛋。所以介紹一下我個人在使用的兩個工具，一個是 <a href="http://www.rejetto.com/hfs/">HTTP File Server</a> ，另一個則是 <a href="http://www.sinatrarb.com/">Sinatra</a>。</p>
+
+<!-- more -->
+
+
+<h2>HFS（HTTP File Server）</h2>
+
+<p><a href="http://www.rejetto.com/hfs/">HFS</a> 是一套免費、開原的輕量級 HTTP server，顧名思義他可以讓你透過瀏覽器存取你電腦上的檔案，上傳、下載、而且有簡單的驗證與帳號控管。對共享檔案來說，遠比開一個 FTP server 來得更方便。且 <a href="http://www.rejetto.com/hfs/">HFS</a> 不用安裝，方便攜帶，是出門在外、居家旅行的好夥伴。</p>
+
+<p>說了這麼多廢話，當然，用來開發 Javascript 是很簡單的事，只要將程式碼所在的資料夾加入即可。附圖是我將 <a href="http://easeljs.com/">EaselJS</a> 的範例程式碼所在資料夾放上去的結果。</p>
+
+<p><img src="http://tonytonyjan.github.com/images/HFS.png"></p>
+
+<h2>Sinatra</h2>
+
+<p><a href="http://www.sinatrarb.com/">Sinatra</a> 是一個為快速架設 web 應用而生的 DSL，他需要安裝 Ruby 才可以執行。簡言之我們其實可以把它和 Rails 歸在同一類，只是 <a href="http://www.sinatrarb.com/">Sinatra</a> 是遠比 Rails 顯得更輕量級的 framwork。</p>
+
+<ol>
+<li><p>將你的網頁檔案丟到 <code>./public</code> 裡面</p></li>
+<li><p>建立並編輯檔案 <code>./serve.rb</code>（名字可以依自己喜好），加上一行 <code>require 'sinatra'</code></p></li>
+<li><p>執行 <code>ruby serve.rb</code>（或者可寫成 batch 檔）</p></li>
+</ol>
+
+
+<p>之所以要把東西放在 <code>./public</code>，是因為 <a href="http://www.sinatrarb.com/">Sinatra</a> 的靜態網頁預設是對照 <code>./public</code>，你可以透過修改 <code>serve.rb</code> 來改變預設路徑，下面這個範例是將預設的靜態網頁目錄改為當前目錄：</p>
+
+<figure class='code'><figcaption><span>serve.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;sinatra&#39;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:public_folder</span><span class="p">,</span> <span class="no">File</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">__FILE__</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/.&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="http://tonytonyjan.github.com/images/sinatra.png"></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在目錄下打開命令提示字元]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/06/shortcut-to-open-command-prompt-in-current-directory/"/>
+    <updated>2012-03-06T23:03:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/06/shortcut-to-open-command-prompt-in-current-directory</id>
+    <content type="html"><![CDATA[<p>這篇文章會告訴你在 windows 檔案總管，如何用右鍵快速在某個目錄下打開命令字元。</p>
+
+<p>因為我發現周遭有很多習慣於命令列工作的人，仍傻呼呼的執行 <code>cmd.exe</code> 之後，一次又一次的 <code>cd</code>、<code>dir</code>，直到抵敵目的地。抑或先打開檔案總管，到目的地之後再複製目錄，貼到命令列，然後在前面再加個 <code>cd</code>。雖然後者又快了一點。若是可以對目錄右鍵之後，有個選項能打開當前目錄的命令提示字元，豈不是非常方便？</p>
+
+<h2>Windows 7</h2>
+
+<ol>
+<li>在檔案總管中選取你想要打開命令列的資料夾</li>
+<li><code>Shift</code> + 右鍵</li>
+<li>按下 &#8216;W&#8217;（或者左鍵點擊「開啟命令視窗」）</li>
+</ol>
+
+
+<p><img src="http://tonytonyjan.github.com/images/right-click-prompt.png"></p>
+
+<h2>Windows XP</h2>
+
+<h3>DIY</h3>
+
+<p>（這個方法需要動到你的登錄檔，如果你不敢改或者不擅長……請跳到下面的簡易版）</p>
+
+<ol>
+<li>執行 <code>regedit</code></li>
+<li>找到 HKEY_LOCAL_MACHINE/Software/Classes/Folder/Shell</li>
+<li>新增一個鍵，命名為 <code>Command Prompt</code></li>
+<li>預設值設定成 <code>Command Prompt Here</code></li>
+<li>新增一個鍵，命名為 <code>Command</code></li>
+<li>預設值設定成 <code>cmd.exe /k pushd %L</code></li>
+</ol>
+
+
+<p>之後你只要在資料夾上點右鍵，就會出現一個叫 <code>Command Prompt Here</code> 的選項。</p>
+
+<h3>簡單方法</h3>
+
+<p><a href="http://windows.microsoft.com/en-US/windows/downloads/windows-xp">Windows 自己有開發這樣的功能，在 Power Toys 下，下載之後安裝就行了。</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[團隊、溝通管道]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/05/cooperation-and-connection/"/>
+    <updated>2012-03-05T01:40:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/05/cooperation-and-connection</id>
+    <content type="html"><![CDATA[<p><img class="right" src="http://tonytonyjan.github.com/images/team.jpg" width="350"></p>
+
+<p>在一個團隊裡面，有一個常遇到的問題就是訊息的傳達不夠全面，尤其是在遠距團隊時更是如此。一個團隊的訊息無法在最短時間傳達給每個人，很多人會認為這是隊長的責任，殊不知隊員如果沒有身份的自覺，這個團隊除非隊長累死，否則仍有溝通的障礙。</p>
+
+<p>舉個例子，今天身在一個團隊的隊長，他的夥伴一個用 Facebook，一個用 Plurk，一個用 Twitter，一個只收信，一個不用網路，而要隊長公告一則訊息得發在三個地方、寄一封信還要打一通電話，是如此大費周章，這樣的團隊大概維持不久，連傳達訊息都如此困難了，哪裡還談得到溝通呢？把聯絡大家當成自己的工作的隊長，這是負責；但是把配合大家地聯絡也當成自己的工作，這是笨。這個案例的問題出在隊長沒有為自己設下界線，以及隊員沒有身為隊員的自覺。</p>
+
+<p>團隊統一訊息管道的重要性仰賴隊員之間的彼此尊重。隊長所要做的是引導所有成員使用統一的訊息管道，而非配合每個人的習慣去聯絡對方；反之隊員則要有身為一隊之員的自覺，配合隊長提供的統一訊息管道，而非等待隊長配合自己的聯絡方式。這是就是尊重，尊重隊長，尊重隊友，尊重這個團體。</p>
+
+<p>如果你是隊長，該覺醒了，不要老是遷就於隊員，每個隊員的習慣不盡相同，但既然你們是一個團隊，你有權要求隊員使用什麼為你們的訊息平台。</p>
+
+<p>反之如果你是隊員，而且你覺得公告一則訊息得發在三個地方、寄一封信還要打一通電話是一件麻煩至極之事，輪到你幫助隊長了，配和他的聯絡管道吧！</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[params["key"] 和 params[:key]]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/03/string-and-symbol-in-controller/"/>
+    <updated>2012-03-03T15:31:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/03/string-and-symbol-in-controller</id>
+    <content type="html"><![CDATA[<p>今天在寫學長託付的 API Server 時，突然對 controller 中用到的 params 變數感到好奇，我想知道為什麼 <code>params[:id]</code> 和 <code>params["id"]</code> 都可以 access 同一份資料，於是展開了 trace code 奇幻之旅。</p>
+
+<p>我臨時寫了一個程式，先 trace <code>params[:id]</code>，再 trace <code>params["id"]</code>，並用等於符號分隔，看他們之間的不同：</p>
+
+<figure class='code'><figcaption><span>Experiment in controller</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">set_trace_func</span> <span class="nb">proc</span> <span class="p">{</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">binding</span><span class="p">,</span> <span class="n">classname</span><span class="o">|</span>
+</span><span class='line'>   <span class="nb">printf</span> <span class="s2">&quot;%8s %s:%-2d %10s %8s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">classname</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+</span><span class='line'><span class="nb">set_trace_func</span> <span class="kp">nil</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;=====================&quot;</span> <span class="c1"># 我不希望 trace 到 puts method</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">set_trace_func</span> <span class="nb">proc</span> <span class="p">{</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">binding</span><span class="p">,</span> <span class="n">classname</span><span class="o">|</span>
+</span><span class='line'>   <span class="nb">printf</span> <span class="s2">&quot;%8s %s:%-2d %10s %8s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">classname</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">params</span><span class="o">[</span><span class="s2">&quot;id&quot;</span><span class="o">]</span>
+</span><span class='line'><span class="nb">set_trace_func</span> <span class="kp">nil</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<!-- more -->
+
+
+<p>我本來以為使用 Symbol 替代 String 是比較省力的，想不到 Rails 下當我們呼叫 <code>params[:key]</code> 時，會徒增許多 call stack，事實就是，Rails 還得幫我們把 Symbol 轉成 String。</p>
+
+<figure class='code'><figcaption><span>Difference between using Symbol and String</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>c-return D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:61 set_trace_func   Kernel
+</span><span class='line'>    line D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:62 UpdatePlayerInfo ApiController
+</span><span class='line'>    call C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:143     params ActionController::Metal
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:144     params ActionController::Metal
+</span><span class='line'>    call C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_dispatch/http/parameters.rb:8  parameters ActionDispatch::Http::Parameters
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_dispatch/http/parameters.rb:9  parameters ActionDispatch::Http::Parameters
+</span><span class='line'>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_dispatch/http/parameters.rb:14 parameters ActionDispatch::Http::Parameters
+</span><span class='line'>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:145     params ActionController::Metal
+</span><span class='line'>  c-call D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:62         []     Hash
+</span><span class='line'>    call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:32    default ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33    default ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33      is_a?   Kernel
+</span><span class='line'>c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33      is_a?   Kernel
+</span><span class='line'>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33       to_s   Symbol
+</span><span class='line'>c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33       to_s   Symbol
+</span><span class='line'>    call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:88       key? ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:89       key? ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>    call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:152 convert_key ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:153 convert_key ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:153   kind_of?   Kernel
+</span><span class='line'>c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:153   kind_of?   Kernel
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:153 convert_key ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:154 convert_key ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:89       key?     Hash
+</span><span class='line'>c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:89       key?     Hash
+</span><span class='line'>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:90       key? ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default     Hash
+</span><span class='line'>c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default     Hash
+</span><span class='line'>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:38    default ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>c-return D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:62         []     Hash
+</span><span class='line'>    line D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:63 UpdatePlayerInfo ApiController
+</span><span class='line'>  c-call D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:63 set_trace_func   Kernel
+</span><span class='line'>=====================
+</span><span class='line'>c-return D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:67 set_trace_func   Kernel
+</span><span class='line'>    line D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:68 UpdatePlayerInfo ApiController
+</span><span class='line'>    call C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:143     params ActionController::Metal
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:144     params ActionController::Metal
+</span><span class='line'>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/actionpack-3.2.2/lib/action_controller/metal.rb:145     params ActionController::Metal
+</span><span class='line'>  c-call D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:68         []     Hash
+</span><span class='line'>    call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:32    default ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33    default ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33      is_a?   Kernel
+</span><span class='line'>c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:33      is_a?   Kernel
+</span><span class='line'>    line C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>  c-call C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default     Hash
+</span><span class='line'>c-return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:36    default     Hash
+</span><span class='line'>  return C:/Ruby193/lib/ruby/gems/1.9.1/gems/activesupport-3.2.2/lib/active_support/hash_with_indifferent_access.rb:38    default ActiveSupport::HashWithIndifferentAccess
+</span><span class='line'>c-return D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:68         []     Hash
+</span><span class='line'>    line D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:69 UpdatePlayerInfo ApiController
+</span><span class='line'>  c-call D:/TonySpace/workspace/monster-fighter/app/controllers/api_controller.rb:69 set_trace_func   Kernel
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>以往知道 Symbol 適合拿來當 key，是因為你不管 access 幾次，都是指到同一個 memory，而且不會被 GC 回收。舉例來說，如果我們存取 <code>params["id"]</code> 一百次，則會產生一百個 <code>"id"</code> 字串，反觀使用 Symbol 則不會花太多時間和資源在建立物件上：</p>
+
+<figure class='code'><figcaption><span>Experiment code</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="mi">100</span><span class="o">.</span><span class="n">times</span><span class="p">{</span>
+</span><span class='line'>  <span class="nb">printf</span> <span class="s2">&quot;%d</span><span class="se">\t</span><span class="s2">%d&quot;</span><span class="p">,</span> <span class="s2">&quot;tonytonyjan&quot;</span><span class="o">.</span><span class="n">object_id</span><span class="p">,</span> <span class="ss">:tonytonyjan</span><span class="o">.</span><span class="n">object_id</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在 Windows 使用 Octopress]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/01/install-octopress-on-windows/"/>
+    <updated>2012-03-01T15:47:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/01/install-octopress-on-windows</id>
+    <content type="html"><![CDATA[<h2>安裝 Ruby</h2>
+
+<p>雖然你也可以安裝 <a href="http://www.ruby-lang.org/en/downloads">RVM</a> 或者自行編譯，但既然是在 Windows 下，建議直接使用 <a href="http://rubyinstaller.org/downloads">Ruby Installer</a> 最省事。在此要下載兩個東西，一就是 ruby ，另一個則是 development kit。之所以要後者是因為屆時在安裝 Octopress 時，所需要用到的 ruby gems 會需要在本地編譯（例如 <a href="https://github.com/rtomayko/rdiscount">rdiscount</a>）。而 development kit 是一套基於 <a href="http://www.mingw.org/wiki/MSYS">MSYS/MinGW</a> 下的 C/C++ 編譯環境工具組，安裝時請跟著<a href="https://github.com/oneclick/rubyinstaller/wiki/Development-Kit">官網上的指示</a>即可，你大概會輸入以下指令：</p>
+
+<pre><code>cd C:\Devkit
+ruby dk.rb init :: 產生 config.yaml，裡面有你的 ruby 路徑，一般會幫你設好
+ruby dk.rb install
+</code></pre>
+
+<p>為了保險起見，安裝之後先更新一下 gem 是個好習慣。</p>
+
+<pre><code>gem update --system
+gem update
+</code></pre>
+
+<!-- more -->
+
+
+<h2>安裝 Git</h2>
+
+<p>下載 <a href="http://git-scm.com">Git</a> 之後，安裝時請選擇 label 上有類似「Full installer for official Git for Windows」之類的字樣。</p>
+
+<h2>安裝 Octopress</h2>
+
+<pre><code>git clone git://github.com/imathis/octopress.git DIR_NAME
+cd DIR_NAME
+gem install bundler
+bundle install :: 安裝 Gemfile 檔案中所列的 gems
+rake install :: 安裝預設的 Octopress 樣式
+</code></pre>
+
+<p>如果你只是想要寫一般的文字網誌，那麼到此為止即可；如果想要加上一些分享代碼，當然你也可以使用 markdown 內附的 code block syntax，但要是你希望可以將程式碼上色或加上行號（也就是 <a href="http://octopress.org/docs/plugins/">Octopress plugins</a> 裡面的 Backtick Code Block、Code Block 和 Include Code 功能），再安裝 Python 2.7。</p>
+
+<h2>安裝 Python</h2>
+
+<p>之所以要安裝 Python 是因為 Octopress 的代碼上色 plugin 是用 Python 的一個開源項目：<a href="http://pygments.org/">Pygment</a>，雖然 Pygment 支援 Python 2 版和 3 版，不過由於 Ruby 和 Python 之間的橋接是用 <a href="http://rubypython.rubyforge.org">RubyPython</a> 完成，而 RubyPython 目前只支援 Python 2。所以還是乖乖安裝 2 版吧！</p>
+
+<h2>遇到問題</h2>
+
+<h3>RubyPython</h3>
+
+<p>還有一點想在此特別提出，當我進行到這個步驟後，以為可以從此高枕無憂寫文章時，在文章中使用 code block 的功能並且執行 <code>rake generate</code>，不料卻噴了一大堆錯誤：</p>
+
+<pre><code>(LoadError)ib/ruby/gems/1.9.1/gems/ffi-1.0.9-x86-mingw32/lib/ffi/library.rb:75:in `block in ffi_lib': Could not open library '.dll': 找不到指定的模組。
+      from C:/Ruby193/lib/ruby/gems/1.9.1/gems/ffi-1.0.9-x86-mingw32/lib/ffi/library.rb:54:in `map'
+      from C:/Ruby193/lib/ruby/gems/1.9.1/gems/ffi-1.0.9-x86-mingw32/lib/ffi/library.rb:54:in `ffi_lib'
+      from C:/Ruby193/lib/ruby/gems/1.9.1/gems/rubypython-0.5.1/lib/rubypython/python.rb:30:in `&lt;module:Python&gt;'
+      from C:/Ruby193/lib/ruby/gems/1.9.1/gems/rubypython-0.5.1/lib/rubypython/python.rb:21:in `&lt;top (required)&gt;'
+...
+</code></pre>
+
+<p>一開使找不到原因，所以去問 Google，找到<a href="http://mattn.github.com/blog/2011/10/21/octopress-pygments-utf8/">這篇文章</a>，提到 rubypython 需要 python27.dll，但由於在 C:\python\libs 下找不到，於是作者將 C:\windows\system32\python27.dll 複製過去便解決了這個問題。而我也照做了，果然！</p>
+
+<p>果然事情沒有憨人想的這麼簡單，錯誤訊息原封不動地噴出來。經過 trace code 之後：</p>
+
+<figure class='code'><figcaption><span>C:\Ruby193\lib\ruby\gems\1.9.1\gems\rubypython-0.5.1\lib\rubypython\python.rb:26</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">PYTHON_LIB</span> <span class="o">=</span> <span class="no">EXEC</span><span class="o">.</span><span class="n">library</span>
+</span><span class='line'><span class="c1"># FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_GLOBAL</span>
+</span><span class='line'><span class="n">ffi_lib_flags</span> <span class="ss">:lazy</span><span class="p">,</span> <span class="ss">:global</span>
+</span><span class='line'><span class="n">ffi_lib</span> <span class="no">EXEC</span><span class="o">.</span><span class="n">library</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我發現問題出在 EXEC.library 一直是 nil 所導致，神奇的是我用 irb 去測試同樣的代碼，卻可以正常運作，而且 python27.dll 明明就在預設的 path 中能找到。找不到原因，最後我只好決定使用最黑暗的方法解決這個問題：</p>
+
+<figure class='code'><figcaption><span>C:\Ruby193\lib\ruby\gems\1.9.1\gems\rubypython-0.5.1\lib\rubypython\python.rb:26</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">PYTHON_LIB</span> <span class="o">=</span> <span class="no">EXEC</span><span class="o">.</span><span class="n">library</span>
+</span><span class='line'><span class="c1"># FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_GLOBAL</span>
+</span><span class='line'><span class="n">ffi_lib_flags</span> <span class="ss">:lazy</span><span class="p">,</span> <span class="ss">:global</span>
+</span><span class='line'><span class="c1"># ffi_lib EXEC.library # 問題出在 EXEC.library 一直是 nil，所以就乾脆註解掉</span>
+</span><span class='line'><span class="n">ffi_lib</span> <span class="s2">&quot;python27&quot;</span> <span class="c1"># 直接加上字串</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>RubyPython 對 Windows 的支援沒有很好是被公認的，而我今天也領教到了。</p>
+
+<h3>UTF-8 編碼</h3>
+
+<p>嘗試在 windows 下使用 octopress，幾乎快被 Windows 的編碼問題搞死！</p>
+
+<p>繁中版 Windows 預設都是以 Big5 為編碼，所以輸入 <code>rake generate</code> 時，如果文章裡面出現 utf-8 編碼，就會出錯。雖然這個問題只要在文章都以 big5 撰寫的前提下獲得解決，但我不太建議這麼做。以前寫網頁大多人都喜歡用 big5，但這僅限於台港中地區，只要出了這個地方往往會有亂碼，且現在寫網頁也多建議用 utf-8。</p>
+
+<p>解決方式是在 <code>rake generate</code> 之前先設定變數：</p>
+
+<pre><code>set LANG=zh_TW.UTF-8
+set LC_ALL=zh_TW.UTF-8
+</code></pre>
+
+<p>另外我們還要有個可以編寫 utf-8 文件的編輯器才行，我習慣用 <a href="http://notepad-plus-plus.org">notepad++</a>。或者你也可以使用 <a href="http://markdownpad.com/">MarkdownPad</a>，一個在 Windows 下專門編寫 markdown 的編輯器。</p>
+
+<p>大功告成，如此即可在 windows 寫 utf-8 編碼的部落格。如果嫌指令麻煩，可以寫成 batch：</p>
+
+<figure class='code'><figcaption><span>gen.bat</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bat'><span class='line'><span class="p">@</span><span class="k">echo</span> <span class="k">off</span>
+</span><span class='line'><span class="k">set</span> <span class="nv">LANG</span><span class="o">=</span>zh_TW.UTF<span class="m">-8</span>
+</span><span class='line'><span class="k">set</span> <span class="nv">LC_ALL</span><span class="o">=</span>zh_TW.UTF<span class="m">-8</span>
+</span><span class='line'>bundle exec rake generate
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[將文章從 Wordpress 搬到 Octopress]]></title>
+    <link href="http://tonytonyjan.github.com/2012/02/25/migrate-from-wordpress-to-octopress/"/>
+    <updated>2012-02-25T01:36:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/02/25/migrate-from-wordpress-to-octopress</id>
+    <content type="html"><![CDATA[<p>今天心血來潮的，把以前在 <a href="http://cssula.twgg.org">CSsula 機房</a>寫的文章全部搬到現在的 Octopress 了。我覺得比較麻煩的地方在於文章標題出現中文的時候，又沒有設定 post_name 時，就會以 <code>yyyy-mm-dd-中文字.markdown</code> 的格式儲存。而這個當然無解，只好手動一個一個改檔名了Orz</p>
+
+<p>Wordpress 的的文章全部存在 wp_posts table 裡，如果要對應到，Octopress 的 yaml 設定的話，需要用到 post_title、post_date、post_content 這三個 column。其中 post_date 的資料型態是 datetime，我原本以為是字串導致運作時出了一點差錯:P</p>
+
+<p>我寫了一個程式完成這項工作，他可以作到三件事情：</p>
+
+<!-- more -->
+
+
+<ol>
+<li>把所有在資料庫中屬於我的文章，轉成檔案存至 _posts 資料夾</li>
+<li>在轉換過程中 wordpress 用到的圖片，下載下來，存至 images/cssula-blog 資料夾</li>
+<li>在轉換過程中將所有的 <code>&lt;img src=""&gt;</code> 轉成 <code>{% img /images/cssula-blog %}</code></li>
+</ol>
+
+
+<p>這是我粗糙的程式碼，程式碼中大寫的部份可以改成別的資料，這東西可以寫得更完善，達到無痛搬家。我想如果網路上沒有開源項目，也許考慮奉獻看看（總之得先看看其他人怎麼寫吧）。</p>
+
+<figure class='code'><figcaption><span>Ruby code to migrate from Wordpress to Octopress.</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;mysql2&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;open-uri&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">create_post</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">content</span>
+</span><span class='line'>  <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-%d&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%H:%M:%S&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;YOUR_OCTOPRESS_ROOT/source/_posts/</span><span class="si">#{</span><span class="n">date</span><span class="si">}</span><span class="s2">-</span><span class="si">#{</span><span class="n">title</span><span class="si">}</span><span class="s2">.markdown&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">){</span><span class="o">|</span><span class="n">f</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">yaml</span> <span class="o">=</span> <span class="o">&lt;&lt;</span><span class="no">eos</span>
+</span><span class='line'><span class="sh">---</span>
+</span><span class='line'><span class="sh">layout: post</span>
+</span><span class='line'><span class="sh">title: &quot;#{title}&quot;</span>
+</span><span class='line'><span class="sh">date: #{date} #{time}</span>
+</span><span class='line'><span class="sh">comments: true</span>
+</span><span class='line'><span class="sh">categories:</span>
+</span><span class='line'><span class="sh">---</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">eos</span>
+</span><span class='line'>    <span class="n">content</span><span class="o">.</span><span class="n">gsub!</span><span class="p">(</span><span class="sr">/&lt;img[^&gt;]*src=&quot;([^&quot;]*)&quot;[^&gt;]*&gt;/i</span><span class="p">){</span><span class="o">|</span><span class="n">match</span><span class="o">|</span>
+</span><span class='line'>      <span class="c1"># open the image</span>
+</span><span class='line'>      <span class="n">filename</span> <span class="o">=</span> <span class="kp">nil</span>
+</span><span class='line'>      <span class="nb">open</span><span class="p">(</span><span class="vg">$1</span><span class="p">){</span><span class="o">|</span><span class="n">ff</span><span class="o">|</span>
+</span><span class='line'>        <span class="n">filename</span> <span class="o">=</span> <span class="vg">$1</span><span class="o">[</span><span class="sr">/\/([^\/]*)$/</span><span class="p">,</span> <span class="mi">1</span><span class="o">]</span>
+</span><span class='line'>        <span class="c1"># save image</span>
+</span><span class='line'>        <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;YOUR_OCTOPRESS_ROOT/source/images/cssula-blog/</span><span class="si">#{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">){</span><span class="o">|</span><span class="n">fff</span><span class="o">|</span>
+</span><span class='line'>          <span class="n">fff</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ff</span><span class="o">.</span><span class="n">read</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>      <span class="c1"># replace image tag into plugin style</span>
+</span><span class='line'>      <span class="s2">&quot;{% img /images/cssula-blog/</span><span class="si">#{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> %}&quot;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">yaml</span><span class="o">+</span><span class="n">content</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">client</span> <span class="o">=</span> <span class="no">Mysql2</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span class='line'>  <span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s2">&quot;YOUR_HOST&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">:username</span> <span class="o">=&gt;</span> <span class="s2">&quot;YOUR_USERNAME&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">:password</span><span class="o">=&gt;</span><span class="s2">&quot;YOUR_PASSWORD&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">:database</span><span class="o">=&gt;</span><span class="s2">&quot;YOUR_DATABASE_NAME&quot;</span>
+</span><span class='line'><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">client</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;select * from wp_posts where post_type=&#39;post&#39; &amp;&amp; post_author=3 &amp;&amp; post_status=&#39;publish&#39;;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+</span><span class='line'>  <span class="k">begin</span>
+</span><span class='line'>    <span class="n">create_post</span> <span class="n">row</span><span class="o">[</span><span class="s2">&quot;post_date&quot;</span><span class="o">]</span><span class="p">,</span> <span class="n">row</span><span class="o">[</span><span class="s2">&quot;post_title&quot;</span><span class="o">]</span><span class="p">,</span> <span class="n">row</span><span class="o">[</span><span class="s2">&quot;post_content&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">rescue</span>
+</span><span class='line'>    <span class="n">create_post</span> <span class="n">row</span><span class="o">[</span><span class="s2">&quot;post_date&quot;</span><span class="o">]</span><span class="p">,</span> <span class="s2">&quot;Unknown title&quot;</span><span class="p">,</span> <span class="n">row</span><span class="o">[</span><span class="s2">&quot;post_content&quot;</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我在這邊提示一下我下的 query：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">select</span> <span class="o">*</span> <span class="k">from</span> <span class="n">wp_posts</span> <span class="k">where</span> <span class="n">post_type</span><span class="o">=</span><span class="s1">&#39;post&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">post_author</span><span class="o">=</span><span class="mi">3</span> <span class="o">&amp;&amp;</span> <span class="n">post_status</span><span class="o">=</span><span class="s1">&#39;publish&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>post_type='post'</code>一定要加上去，否則 page 和 revision 都會被挖出來</li>
+<li><code>post_status='publish'</code> 則表示已發布的文章，如果你的草稿也想一起導入，就把這個拿掉，如果只想導入草稿則改成 <code>draft</code></li>
+<li><code>post_author=3</code> 表示只導出某個作者的文章。</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在 Octopress 顯示目錄與標籤雲]]></title>
+    <link href="http://tonytonyjan.github.com/2012/02/13/category-list-and-tag-cloud/"/>
+    <updated>2012-02-13T00:34:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/02/13/category-list-and-tag-cloud</id>
+    <content type="html"><![CDATA[<p>正在苦惱 octopress 沒有可以顯示所有目錄地外掛時，在<a href="http://blog.eddie.com.tw/2011/12/05/add-catetories-to-sidebar-in-octopress/">高見龍前輩的網誌上取到西經</a>（看不懂的人，建議先閱讀過 <a href="https://github.com/mojombo/jekyll/wiki/Plugins">jekll plugin</a>）。但由於這種解在 <code>rake preview</code> 時會失敗，於是我開始撰寫 tag 版本。</p>
+
+<p>嗯……好險我沒有寫完，因為我後來又發現在底下的回覆，tokkonoPapa 分享了一個 <a href="https://github.com/tokkonopapa/octopress-tagcloud">repository</a>，和我想要做的東西一模一樣。當然，為了不重造輪子，我的網誌就採用了 tokkonoPapa 整理後的程式碼。</p>
+
+<p>使用方式只要將三個檔案放在對應的位置即可，但要注意的是必須在 _config.yml 中設定 default_asides。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在 Octopress 加上近期回覆]]></title>
+    <link href="http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress/"/>
+    <updated>2012-02-12T19:14:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress</id>
+    <content type="html"><![CDATA[<p>octopress 內建的回覆外掛是 <a href="http://disqus.com">disqus</a>。但卻沒有提供在 asides 顯示近期回應的功能，加上我在網路上查不太到別人的寫法，於是我就自己寫了一個，也許對一些人有幫助：</p>
+
+<figure class='code'><figcaption><span>\source\_includes\custom\asides\recent_comments.html</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'>{% if site.disqus_short_name and page.comments != false %}
+</span><span class='line'><span class="nt">&lt;section&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;h1&gt;</span>近期回覆<span class="nt">&lt;/h1&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="kd">function</span> <span class="nx">recent_comments</span><span class="p">(</span><span class="nx">obj</span><span class="p">){</span>
+</span><span class='line'>      <span class="k">if</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">response</span><span class="p">.</span><span class="nx">length</span><span class="p">){</span>
+</span><span class='line'>        <span class="nx">resault</span> <span class="o">=</span> <span class="s1">&#39;&lt;ul&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="nx">obj</span><span class="p">.</span><span class="nx">response</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">response</span><span class="p">){</span>
+</span><span class='line'>          <span class="nx">resault</span> <span class="o">+=</span> <span class="s1">&#39;&lt;li&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>          <span class="nx">resault</span> <span class="o">+=</span> <span class="s1">&#39;&lt;a href=&quot;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">author</span><span class="p">.</span><span class="nx">profileUrl</span><span class="o">+</span><span class="s1">&#39;&quot;&gt;&lt;img src=&quot;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">author</span><span class="p">.</span><span class="nx">avatar</span><span class="p">.</span><span class="nx">permalink</span><span class="o">+</span><span class="s1">&#39;&quot; width=32 height=32 style=&quot;float: left; margin-right: 5px;&quot;&gt;&lt;/a&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>          <span class="nx">resault</span> <span class="o">+=</span> <span class="s1">&#39;&lt;a href=&quot;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">author</span><span class="p">.</span><span class="nx">profileUrl</span><span class="o">+</span><span class="s1">&#39;&quot;&gt;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">author</span><span class="p">.</span><span class="nx">name</span><span class="o">+</span><span class="s1">&#39;&lt;/a&gt;：&#39;</span><span class="p">;</span>
+</span><span class='line'>          <span class="nx">resault</span> <span class="o">+=</span> <span class="s1">&#39;&lt;span&gt;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">message</span><span class="o">+</span><span class="s1">&#39;&lt;/span&gt;&lt;br&gt;&#39;</span>
+</span><span class='line'>          <span class="nx">resault</span> <span class="o">+=</span> <span class="s1">&#39;&lt;a href=&quot;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">thread</span><span class="p">.</span><span class="nx">link</span><span class="o">+</span><span class="s1">&#39;&quot;&gt;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">thread</span><span class="p">.</span><span class="nx">title</span><span class="o">+</span><span class="s1">&#39;&lt;/a&gt;&lt;br&gt;&#39;</span>
+</span><span class='line'>          <span class="nx">resault</span> <span class="o">+=</span> <span class="s1">&#39;at &lt;a href=&quot;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">url</span><span class="o">+</span><span class="s1">&#39;&quot;&gt;&#39;</span><span class="o">+</span><span class="nx">response</span><span class="p">.</span><span class="nx">createdAt</span><span class="o">+</span><span class="s1">&#39;&lt;/a&gt;&#39;</span>
+</span><span class='line'>          <span class="nx">resault</span> <span class="o">+=</span> <span class="s1">&#39;&lt;/li&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">});</span>
+</span><span class='line'>        <span class="nx">resault</span> <span class="o">+=</span> <span class="s1">&#39;&lt;/ul&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="nb">document</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="nx">resault</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+</span><span class='line'>        <span class="nb">document</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="s2">&quot;目前沒有回覆&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>  <span class="nt">&lt;/script&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;http://disqus.com/api/3.0/forums/listPosts.jsonp?forum=tonytonyjan-blog&amp;api_key=IVQOSOjZknRNZi3rYa3gxFA5CCLjuGP9ojHi3TSeUenFl2mckhh3gl9k9NqGDetu&amp;related=thread&amp;callback=recent_comments&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'><span class="nt">&lt;/section&gt;</span>
+</span><span class='line'>{% endif %}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>備註：需要用到 <a href="http://disqus.com">disqus</a> 提供的 <a href="http://disqus.com/api">API</a>。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[搬到 Octopress]]></title>
+    <link href="http://tonytonyjan.github.com/2012/02/11/the-first-post/"/>
+    <updated>2012-02-11T22:22:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/02/11/the-first-post</id>
+    <content type="html"><![CDATA[<p><img class="right" src="http://tonytonyjan.github.com/images/octopress.png" width="300"></p>
+
+<p>之後很可能就以這裡為主要的部落格了。</p>
+
+<p>一直以來在網路尋找一個提供適合程式設計師使用的部落格，但花了很久的時間仍找不到，所以目前為止使用過的部落格（xuite、wretch、blogger 等等），往往貼程式碼的時候不但不會自動上色，縮排也會亂成一團。</p>
+
+<!-- more -->
+
+
+<p>直到我發現了 octopress，號稱是為黑客們設計的部落格框架，才解決我多年來的麻煩。仔細研究一下發現這是用 <a href="http://jekyllrb.com/">jekyll</a> 框架做出來的，由於前陣子有玩過 <a href="http://jekyllrb.com/">jekyll</a>，對 octopress 的使用也還不至於太陌生。</p>
+
+<p>我選擇 octopress 的理由主要有兩個：</p>
+
+<ol>
+<li><p><strong>文章支援 markdown</strong></p>
+
+<p>我很討厭使用編輯器時還要處理一大多的 tag，尤其在複製貼上的時候，還會莫名其妙的多出一堆 span tag 真的很惱人。所以曾經想過要寫一個屬於自己且支援 markdown 的部落格。但現在有了 octopress，省掉我大部分的麻煩。</p></li>
+<li><p><strong>更方便地分享程式碼</strong></p>
+
+<p>我曾在 google blogger 經營過以程式筆記為主題的網誌，但光是安裝第三方的程式碼上色函式庫就非常的複雜（複雜到我還為此寫了一篇文章）。反觀 octopress 由於已經內建許多外掛，大大減輕我分享程式碼的困難度。</p></li>
+</ol>
+
+
+<p>之後可能會日漸將以前的文章搬過來，那又是另一個麻煩的工作了Orz</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[生意人真是辛苦]]></title>
+    <link href="http://tonytonyjan.github.com/2012/01/22/1/"/>
+    <updated>2012-01-22T08:26:17+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/01/22/1</id>
+    <content type="html"><![CDATA[<p><img src="http://tonytonyjan.github.com/images/slum-area/1_208966196_m.jpg"></p>
+
+
+<p>昨天又經過了我國中同學的春聯攤位，我逗留一下，閒言閒語之間，她邀請我下午來幫忙一起叫賣，我盤算一下，自己其實也沒有什麼事要忙，便答應了。因為是臨時加入的外援，對於春聯的價位都不熟，糖果的磅秤也不會操作，且昨天下午也只有幫忙短短一個鐘頭的時間，除了我發出了約五張的傳單之外，我感覺我是來幫倒忙的。結束後還接收了一罐飲料，實在問心有愧。所以在他們再邀請我在今天（除夕）也來幫忙時，我二話不說就答應了。</p>
+
+
+<p>我今天體驗了六個鐘頭的生意人的生活。首先最讓我崩潰的是，身為一個生意人，起床時間約莫是四點半，或者更早，然而對一個工程師來說，這個時間差不多是就寢的時候。以我今天的例子，四點半起床，五十五分出門，五點開始擺攤。那時天都還沒有亮，但不斷可以聽見從市場傳來此起彼落的聲音：陳列果菜、放置糕餅、裝飾花卉、料理早餐等等，每位老闆都默默忙著自己的事情，但卻不發一語，可謂嘈中有靜之相。我們賣的是春聯，還不用太多事前準備工作，如果是賣吃的，恐怕還得為了料理食物而起得更早。</p>
+
+
+<p>我有三個鐘頭的時間在發傳單，雖然賣東西完全是外行人，但發傳單倒是還有點自信，在熙熙攘攘的市集之中，發了五六十張左右，也為我們的攤位追加了幾筆生意。在這裡發傳單其實和在學校發傳單有很大的不同，一曰族群，二曰環境。族群是指我要面對形形色色的人而有不同的宣傳方式，例如對象比較老，可能要改說台語；如果看起來腳步很快，就不要多話，發傳單就好；看到刻意避開的就別打擾，否則會被討厭。環境則是我無法抵抗市場車來車往時產生的髒空氣，機車大隊就在我前面穿梭，短時間是不痛不養，數個鐘頭真的會讓人呼吸困難。反觀學校多是平輩，代溝較少，看在同學份上也多會捧場，與在市場裡發傳單之差異大矣。</p>
+
+
+<p>向來都是接案子的我，缺乏商、服務業的打工經驗，今天可以說是被免費的上了一課。當生意人真是辛苦。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[聊聊漂亮的女人]]></title>
+    <link href="http://tonytonyjan.github.com/2012/01/16/2/"/>
+    <updated>2012-01-16T08:55:42+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/01/16/2</id>
+    <content type="html"><![CDATA[<p><img src="http://tonytonyjan.github.com/images/slum-area/2_208511316_m.jpg"></p>
+
+
+<p>筆者想談談為什麼常聽人說「漂亮的女人往往笨，醜陋的女人往往有才智」，我雖一向不太同意無據之詞，但一面覺得成句不會無中生有，且身為一名好胡思亂想之人，餘習所遷，偶會去思考到底什麼原因造成有此成句。當然，我的答案畢竟是自推自斷，僅供參考，若筆者的文章也讓閣下想到什麼，也歡迎提出來與網友分享。</p>
+
+
+<p>筆者覺得這個社會對於人的外貌，有差別待遇的問題，而且這個問題在女性中尤其嚴重。不管在哪個階段，從國小到公司都有。我覺得造成此成句的主因，可能就是世俗所給予的差別待遇所造成的。</p>
+
+
+<p>提及漂亮的女人，筆者生活周遭所認識的漂亮女人，確實有幾個沒有這麼聰明，此不指成績差，而是指不通人情世故，不懂世間冷暖，對於社會的認識以及進退應對不夠聰明。</p>
+
+
+<p>私以為漂亮的女人從小在誇讚聲中長大，處處被從寬對待，遇到問題求救容易，也容易對男人使來喚去，所有問題都可以輕易請他人幫忙，以致自立能力較弱，臉皮較厚，思考較直線，同時因為比較不會吃到苦頭，當吃到苦頭時容易將自身化為悲劇女角。（此外我想這也是為什麼公主病也常發生在正妹身上？）</p>
+
+
+<p>反觀醜陋的女人，相對漂亮的，可以說是逆境中求生存，這種人要馬沒有自信，不然就是很有自信，而很有自信的，往往早一步看破外表，看破自己不如漂亮的女人那樣容易被捧在手心，看破世俗對於女性外貌的差別待遇，總之看破的事情多了，對於在社會上的言行舉止與待人處事就有更多體悟，知道該怎麼舉手投足容易給人好印象，而不是靠外表。也因為被幫助的機會少，所以自立能力較強，也比較獨立。</p>
+
+
+<p>結論就是，人的才智只有在遇到困境才會增長。</p>
+
+
+<p>這似乎也意謂著對於那些無法改變的事情不用太計較：出生的家庭、遺傳的長相等等。好也不用太得意，小時了了，大未必佳，反而要更警惕自己；壞也不用氣餒，塞翁失馬，焉知非福，人的個性才是成功的關鍵。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[From Taipei To Oulan Bator（MIT 台灣誌片尾曲）]]></title>
+    <link href="http://tonytonyjan.github.com/2011/12/14/3/"/>
+    <updated>2011-12-14T08:32:19+08:00</updated>
+    <id>http://tonytonyjan.github.com/2011/12/14/3</id>
+    <content type="html"><![CDATA[<p><iframe width="420" height="315" src="http://www.youtube.com/embed/2WkxjOyhIY0?rel=0#t=5m49s" frameborder="0" allowfullscreen=""></iframe></p>
+
+
+<p><iframe width="180" height="60" style="border-style: initial; border-color: initial;" marginwidth="0" marginheight="0" src="http://vlog.xuite.net/embed/Wkhzd203LTQwNjkxMTUuZmx2?ar=0&amp;as=0" scrolling="no" frameborder="0"></iframe></p>
+
+
+<p>（From Taipei To Oulan Bator 完整版音樂）</p>
+
+
+<p>有看過「MIT台灣誌」的朋友，應該對於他的片尾曲不陌生吧？這首叫「From Taipei to Oulan Bator」的歌，是由郭英男與馬蘭吟唱隊所唱，且在國外發行，因為很好聽，是在網路上詢問度非常高的歌曲。而筆者也是每次聽到都有種心靈受到洗滌的感覺，於是開始搜尋這首歌曲的來歷。</p>
+
+
+<p><span><span>有趣的是，這首歌的來歷眾說紛紜，常聽到的說法是這首歌是在韓國錄製，但事實上並非如此。經過筆者蒐集資料之後，確定</span></span>「From Taipei to Oulan Bator」來自於一個叫「<a href="http://www.arilprivatestudio.be/khe/index.php">Kheops</a>」的樂團（在台灣恐怕鮮為人知），並收錄在 1996 年的第一個專輯「Pyramix」。</p>
+
+
+<p><img src="http://tonytonyjan.github.com/images/slum-area/3_205547401_m.jpg"></p>
+
+
+<p><span><span>Kheops 是由 Aril Laury 與 Timothy Hagelstein 所主導，結合藝術、音樂、與世界各國的歌手與樂手的音樂團體。Aril Laury 負責詞曲，編曲，聲音演出。Timothy Hagelstein 負責混音及後製。</span></span></p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[玩世哲學]]></title>
+    <link href="http://tonytonyjan.github.com/2011/12/13/4/"/>
+    <updated>2011-12-13T08:43:46+08:00</updated>
+    <id>http://tonytonyjan.github.com/2011/12/13/4</id>
+    <content type="html"><![CDATA[<p><img src="http://tonytonyjan.github.com/images/slum-area/4_205446185_m.jpg"></p>
+
+<p>在網路上看到很有意思的靜思語：</p>
+
+<blockquote><p>Enjoy your pain, sorrow and hatred, as you can enjoy your happiness, since they are all part of your life.</p><footer><strong>Antony Jian</strong> <cite><a href='https://plus.google.com/u/0/106993981418226624133/posts/8SXpYRMA87A'>Google+</a></cite></footer></blockquote>
+
+
+<p>原文意思是：</p>
+
+<blockquote><p>享受你的痛苦、悲傷以及仇恨，正如享受你的快樂，因為這些全都是你生活的一部分。</p><footer><strong>Antony Jian</strong> <cite><a href='https://plus.google.com/u/0/106993981418226624133/posts/8SXpYRMA87A'>Google+</a></cite></footer></blockquote>
+
+
+<p>我覺得神奇的是，這句話幾乎完全地解釋了我這年來的生活觀，一查之下才發現 Antony Jian 其實就是簡煒航。</p>
+
+<p>……</p>
+
+<p>……</p>
+
+<p>……</p>
+
+<p>我看我還是別鬧好了，沒錯，這一個靜思語是我自己寫的（被巴）。</p>
+
+<p>對於一個每天的生活都希望過得不一樣的我來說，面對世界的態度可以說是無時無刻都可能改變。記得從中學開始，我就企圖想找到一些足以另我在萬丈紅塵、人生的混水之中能夠沒有迷惘的真理，講白話一點，就是尋找快樂的秘訣。而我相信答案不該在混水裡面找，反而應該往內心去探究。</p>
+
+<p>這被我稱為「玩世哲學」的東西，大概可以追溯到 2010（參閱：<a href="http://tonytonyjan.github.com/2010/06/27/59/">This World Is A Playground</a>、<a href="http://tonytonyjan.github.com/2011/06/11/30/">吾乃追天之人</a>），文章大概是因突來的靈感所作，不料此靈感可以在這段時間茁壯到足以救援我好幾次，還讓我想再回過頭來重寫一次文章。</p>
+
+<p>一字以敝之，就是「玩」，從頭玩到尾，從出生玩到死。當然這種「玩世」並不是眾人所認為「玩世不恭」的「玩世」。「玩世不恭」是指一種消極、不嚴肅、不認真的生活態度；但這裡的「玩世」則是要回歸赤子本心，對萬事萬物保持好奇心，如果各位已經不記得第一次走路、第一次說話的喜悅，至少也記得第一次到動物園看到各式各樣動物時的興奮吧？也記得第一次上學的期待？甚至也該記得初戀的感覺吧？你可以把這些感覺、體驗，都當成是這個世界的特產，只有這地方才有，便會覺得這世界就像個遊樂場一樣，而我們難得來到這個地方一次（也可能只有一次），世界之大，怎麼不好好玩一場，去「認識」這個世界？</p>
+
+<p>這種對於自己所降臨的「這個世界」充滿好奇心、急於嘗試、體驗、摸索，這種心情大概就像大多人會有想去的國家、或有想學的樂器一樣，我覺得就是使人生精彩的秘訣了。各位不妨試問自己，對這個世界是否仍感興趣？</p>
+
+<p>可是生活中難免會有許多煩惱，學業、經濟、家庭、同儕、愛情等等，壓力從四面八方而來，這種「玩世」態度怎麼可能讓人保持快樂下去？</p>
+
+<p>當然不可能，我可沒說過「玩世哲學」就是快樂秘訣。事實上，「玩世哲學」是一種面對各種狀況，無論好壞都可以一視同仁地承受的態度，是一種承受能力（參閱：<a href="http://tonytonyjan.github.com/2011/06/11/30/">吾乃追天之人</a>），此外，我到最後其實認為沒有快樂的秘訣存在。</p>
+
+<p>套一句侯文詠的話：「就像迪士尼樂園，大部分小孩子即使摔倒了也不會哭。為什麼呢，因為玩都來不及，要趕快爬起來去玩。如果你把自己的人生當作遊樂場，你跌倒了就不會哭。」此話意外與我不謀而合，但我覺得不會哭其實不代表不會痛，人活著不可能沒有痛，人有七情六慾，喜怒哀樂，人被賜予這些感覺就是因為人生用得到，躲不了，不能因為我只喜歡喜樂，所以就不會有怒與哀，不可能，挑食行為在人生的這頓大餐不管用，餐桌上就是陳列著酸甜苦辣鹹的食物，我們就是得每道都要嚐到。</p>
+
+<p>而那些看似擁有快樂秘訣的人，並不是因為只挑甜頭吃，而是他們懂得品味痛苦。與其說品味痛苦，不如說品味人生，正如開頭所示，不管喜怒哀樂、悲歡離合、愛恨情仇，都是人生的一部分，不能偏心，如果「快樂」、「幸福」是可享受的，自然「痛苦」、「憤怒」應也可享受。</p>
+
+<p>我覺得有些簡單的道理是小時候就已經掌握了，但是隨著長大，刺激與煩惱越來越多，反而卻忘記了當時的本心。是否我們現在都該給自己多一點時間，找回失落的赤子本心，才不致像筆者一樣現在還宅在宿舍裡面發這篇廢文？</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[PTT 不會死]]></title>
+    <link href="http://tonytonyjan.github.com/2011/12/09/5/"/>
+    <updated>2011-12-09T08:31:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2011/12/09/5</id>
+    <content type="html"><![CDATA[<p><img src="http://tonytonyjan.github.com/images/slum-area/5_205436976_m.jpg"></p>
+
+
+<p>前陣子想到的問題，但還沒有解答，所以這篇被我擱了兩天。完整的問題是這樣的：為什麼現在網路上已經存在許多功能上可以取代 BBS 的 web論壇，PTT 還是不死？</p>
+
+
+<p>Web 勝過 PTT 的項目：</p>
+
+
+<div><ol><li>上手簡單、人性化、圖文並茂</li><li>文章幾乎不會刪除，在 PTT 中的文章只有 m 文才可以保留，如果版主是廢物，就有很多好文章無法被保留（或廢文得以保留）</li><li>BBS 對於文章的回覆只有推文，web 論壇有「討論串」的概念</li></ol></div>
+
+
+<div>但是真正讓 PTT 不死的原因如下：</div>
+
+
+<ol><li>其實就瀏覽文章來看，用鍵盤比滑鼠還快</li><li>不論會員多寡，PTT 24 小時內都有十萬鄉民在線上</li><li>PTT 在 BBS 界稱霸，人潮集中，反觀web 論壇，雖然功能完善，但是人潮被分散各大論壇（例如微風、卡提諾、台灣論壇等等）</li><li>PTT 交流速度快，甚至發個問題幾秒內就有人回覆（效率遠超過奇摩知識+ 和 web 論壇）</li></ol>
+
+
+<div>論壇、討論版這類的東西，互動就是成敗關鍵，互動多自然就不會死，而 PTT 高頻率的互動正是讓他不會死的原因，我曾做過實驗，在 PTT、各論壇、雅虎知識發表相同的問題，在 PTT 回覆的速度總是最高的（但如果是看累積回覆的篇數，大約一個月之後，雅虎知識勝出）。</div>
+
+]]></content>
+  </entry>
+  
+</feed>

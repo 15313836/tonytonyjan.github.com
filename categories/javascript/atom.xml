@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Javascript | 不歸錄]]></title>
+  <link href="http://tonytonyjan.github.com/categories/javascript/atom.xml" rel="self"/>
+  <link href="http://tonytonyjan.github.com/"/>
+  <updated>2012-05-01T23:15:46+08:00</updated>
+  <id>http://tonytonyjan.github.com/</id>
+  <author>
+    <name><![CDATA[大兜]]></name>
+    <email><![CDATA[tonytonyjan@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[使用 Sinatra、HFS 在本地開發 Javascript]]></title>
+    <link href="http://tonytonyjan.github.com/2012/03/08/using-sinatra-for-local-javascript-development/"/>
+    <updated>2012-03-08T14:16:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/03/08/using-sinatra-for-local-javascript-development</id>
+    <content type="html"><![CDATA[<p>寫 Javascript 的時候難免會用到 AJAX 抑或讀檔，尤其現在 HTML5 正熱，常常需要讀取圖片並顯示在 canvas，但麻煩是，瀏覽器會為了安全考量，禁止所有對本地檔案系統的資料的存取（Chrome 自從版本 5 之後，擋住了所有對 <code>http://</code> 以外協定的 AJAX request，其中當然包括 <code>file://</code>）。</p>
+
+<p>這個問題有個很直覺的解法，那就是自己開一個 HTTP server。但只是為了做前端網頁開發，搞個像 Apache 這種重量級的 server 豈不是用大砲打鳥蛋。所以介紹一下我個人在使用的兩個工具，一個是 <a href="http://www.rejetto.com/hfs/">HTTP File Server</a> ，另一個則是 <a href="http://www.sinatrarb.com/">Sinatra</a>。</p>
+
+<!-- more -->
+
+
+<h2>HFS（HTTP File Server）</h2>
+
+<p><a href="http://www.rejetto.com/hfs/">HFS</a> 是一套免費、開原的輕量級 HTTP server，顧名思義他可以讓你透過瀏覽器存取你電腦上的檔案，上傳、下載、而且有簡單的驗證與帳號控管。對共享檔案來說，遠比開一個 FTP server 來得更方便。且 <a href="http://www.rejetto.com/hfs/">HFS</a> 不用安裝，方便攜帶，是出門在外、居家旅行的好夥伴。</p>
+
+<p>說了這麼多廢話，當然，用來開發 Javascript 是很簡單的事，只要將程式碼所在的資料夾加入即可。附圖是我將 <a href="http://easeljs.com/">EaselJS</a> 的範例程式碼所在資料夾放上去的結果。</p>
+
+<p><img src="/images/HFS.png"></p>
+
+<h2>Sinatra</h2>
+
+<p><a href="http://www.sinatrarb.com/">Sinatra</a> 是一個為快速架設 web 應用而生的 DSL，他需要安裝 Ruby 才可以執行。簡言之我們其實可以把它和 Rails 歸在同一類，只是 <a href="http://www.sinatrarb.com/">Sinatra</a> 是遠比 Rails 顯得更輕量級的 framwork。</p>
+
+<ol>
+<li><p>將你的網頁檔案丟到 <code>./public</code> 裡面</p></li>
+<li><p>建立並編輯檔案 <code>./serve.rb</code>（名字可以依自己喜好），加上一行 <code>require 'sinatra'</code></p></li>
+<li><p>執行 <code>ruby serve.rb</code>（或者可寫成 batch 檔）</p></li>
+</ol>
+
+
+<p>之所以要把東西放在 <code>./public</code>，是因為 <a href="http://www.sinatrarb.com/">Sinatra</a> 的靜態網頁預設是對照 <code>./public</code>，你可以透過修改 <code>serve.rb</code> 來改變預設路徑，下面這個範例是將預設的靜態網頁目錄改為當前目錄：</p>
+
+<p><code>ruby serve.rb
+require 'sinatra'
+set :public_folder, File.dirname(__FILE__) + '/.'
+</code></p>
+
+<p><img src="/images/sinatra.png"></p>
+]]></content>
+  </entry>
+  
+</feed>

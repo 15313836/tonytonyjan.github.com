@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Disqus | 不歸錄]]></title>
+  <link href="http://tonytonyjan.github.com/categories/disqus/atom.xml" rel="self"/>
+  <link href="http://tonytonyjan.github.com/"/>
+  <updated>2012-05-01T23:15:46+08:00</updated>
+  <id>http://tonytonyjan.github.com/</id>
+  <author>
+    <name><![CDATA[大兜]]></name>
+    <email><![CDATA[tonytonyjan@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[在 Octopress 加上近期回覆（二）]]></title>
+    <link href="http://tonytonyjan.github.com/2012/04/27/display-recent-comments-in-octopress-2/"/>
+    <updated>2012-04-27T14:55:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/04/27/display-recent-comments-in-octopress-2</id>
+    <content type="html"><![CDATA[<p>之前在有發過一篇<a href="/2012/02/12/display-recent-comments-in-octopress">在 Octopress 加上近期回覆</a>，我因為找不到有關顯示近期回應的程式碼（搜尋能力有待加強），所以自己徒手寫了一個。想不到今天在 Disqus 管理頁面發現有 widget 可以用，除此之外還有熱門回覆等其他 wedget。</p>
+
+<p>可惡啊……之前做了白工……</p>
+
+<p><img src="/images/disqus-admin-tools.png"></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在 Octopress 加上近期回覆]]></title>
+    <link href="http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress/"/>
+    <updated>2012-02-12T19:14:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress</id>
+    <content type="html"><![CDATA[<p>octopress 內建的回覆外掛是 <a href="http://disqus.com">disqus</a>。但卻沒有提供在 asides 顯示近期回應的功能，加上我在網路上查不太到別人的寫法，於是我就自己寫了一個，也許對一些人有幫助：</p>
+
+<p>``` html \source_includes\custom\asides\recent_comments.html
+{% if site.disqus_short_name and page.comments != false %}
+<section>
+  <h1>近期回覆</h1>
+  <script type="text/javascript"></p>
+
+<pre><code>function recent_comments(obj){
+  if(obj.response.length){
+    resault = '&lt;ul&gt;';
+    obj.response.forEach(function(response){
+      resault += '&lt;li&gt;';
+      resault += '&lt;a href="'+response.author.profileUrl+'"&gt;&lt;img src="'+response.author.avatar.permalink+'" width=32 height=32 style="float: left; margin-right: 5px;"&gt;&lt;/a&gt;';
+      resault += '&lt;a href="'+response.author.profileUrl+'"&gt;'+response.author.name+'&lt;/a&gt;：';
+      resault += '&lt;span&gt;'+response.message+'&lt;/span&gt;&lt;br&gt;'
+      resault += '&lt;a href="'+response.thread.link+'"&gt;'+response.thread.title+'&lt;/a&gt;&lt;br&gt;'
+      resault += 'at &lt;a href="'+response.url+'"&gt;'+response.createdAt+'&lt;/a&gt;'
+      resault += '&lt;/li&gt;';
+    });
+    resault += '&lt;/ul&gt;';
+    document.write(resault);
+  }else{
+    document.write("目前沒有回覆");
+  }
+};
+</code></pre>
+
+<p>  </script>
+  <script type="text/javascript" src="http://disqus.com/api/3.0/forums/listPosts.jsonp?forum=tonytonyjan-blog&api_key=IVQOSOjZknRNZi3rYa3gxFA5CCLjuGP9ojHi3TSeUenFl2mckhh3gl9k9NqGDetu&related=thread&callback=recent_comments"></script>
+</section>
+{% endif %}
+```</p>
+
+<p>備註：需要用到 <a href="http://disqus.com">disqus</a> 提供的 <a href="http://disqus.com/api">API</a>。</p>
+]]></content>
+  </entry>
+  
+</feed>

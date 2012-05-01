@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Swing | 不歸錄]]></title>
+  <link href="http://tonytonyjan.github.com/categories/swing/atom.xml" rel="self"/>
+  <link href="http://tonytonyjan.github.com/"/>
+  <updated>2012-05-01T23:15:46+08:00</updated>
+  <id>http://tonytonyjan.github.com/</id>
+  <author>
+    <name><![CDATA[大兜]]></name>
+    <email><![CDATA[tonytonyjan@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[CPUSK1.1-Beta]]></title>
+    <link href="http://tonytonyjan.github.com/2010/04/21/cpusk1.1-beta/"/>
+    <updated>2010-04-21T05:38:46+08:00</updated>
+    <id>http://tonytonyjan.github.com/2010/04/21/cpusk1.1-beta</id>
+    <content type="html"><![CDATA[<p>還在想到底這篇文章要歸類為「實用軟體推薦」嗎？XD（真好意思說）</p>
+
+<p><img src="/images/cssula-blog/Screenshot-15.png"></p>
+
+<p>（ver1.1 Beta）<a href="http://www.cs.nctu.edu.tw/%7Ewhchien/CPUSK1.1-Beta.rar">載點</a></p>
+
+<!--more-->
+
+
+<p><strong>2010/4/15 更新至ver1.1 Beta</strong></p>
+
+<h3>修正</h3>
+
+<ul>
+    <li>預設樂器多一個空白的問題</li>
+    <li>視窗大小可以調整</li>
+</ul>
+
+
+<p>追加：</p>
+
+<ul>
+    <li>Search -  關鍵字搜尋（僅支援標題搜索，搜索時可用方向鍵上下移動）</li>
+</ul>
+
+
+
+
+<!--nextpage-->
+
+
+<p><img src="/images/cssula-blog/Screenshot-14.png"></p>
+
+<p>(Ver0.9 Beta)</p>
+
+<p>CPUSK 的全名為 Central Police University Sheet Keeper（我真的想不到更合適的名字了……希望有文人可以幫忙命名＠＠），這個可愛的小工具的誕生只是因為筆者受到警大管樂團友人的委託。待過管樂團的都知道，演奏一首曲子如果要知道這首曲子需要哪些樂器，就要去查總譜。而這個工具正是為了這個目的而生。筆者早想做個圖形化視窗程式，但遲遲找不到主題，這下剛好可以藉這個機會來試試自己的能耐XD（上圖下方附上載點，有興趣的人可以拿來玩玩看，<strong>如果可以弄當它更好！</strong>但是請順便回報一下過程給我。</p>
+
+<p>介面的設計是依照警大的實體表格，裡面有寫死的 46 個樂器，還有 18 個空格可以做擴充，為了讓對方可以快速入門，當然是設計一模一樣了＠＠（連放置位置也一樣）</p>
+
+<p>目前最基本的加入、刪除、儲存功能都已經有了，只是啟動畫面、美工、About 等等都還沒做（我很懶），接下來會陸續增加是以「功能」為主：搜尋、播放、備註等等，等到功能豐富一點再開始搞美觀吧XD（不知道是什麼時候了…）</p>
+
+<p>總之慢慢來（茶）</p>
+]]></content>
+  </entry>
+  
+</feed>

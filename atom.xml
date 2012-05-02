@@ -4,7 +4,7 @@
   <title><![CDATA[不歸錄]]></title>
   <link href="http://tonytonyjan.github.com/atom.xml" rel="self"/>
   <link href="http://tonytonyjan.github.com/"/>
-  <updated>2012-05-01T23:15:46+08:00</updated>
+  <updated>2012-05-02T15:49:44+08:00</updated>
   <id>http://tonytonyjan.github.com/</id>
   <author>
     <name><![CDATA[大兜]]></name>
@@ -12,6 +12,51 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[List Published or Unpublished Posts in Octopress]]></title>
+    <link href="http://tonytonyjan.github.com/2012/05/02/list-all-posts-rake-task-for-octopress/"/>
+    <updated>2012-05-02T13:36:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/05/02/list-all-posts-rake-task-for-octopress</id>
+    <content type="html"><![CDATA[<h2>What&#8217;s the Problem?</h2>
+
+<p>We may leave some draft posts in <code>_posts</code> directory, but it comes a problem when we are going to find whether the post is published or not by reading throuh filenames in the future.</p>
+
+<p>To solve this, I created this rake task. It will list all posts each line, and prepend an asterisk if it&#8217;s published. Just append it in your <code>Rakefile</code> to make it works.</p>
+
+<h3>Usage</h3>
+
+<pre><code>rake list_posts
+rake list_posts[pub|unpub]
+</code></pre>
+
+<div><script src='https://gist.github.com/2574782.js?file='></script>
+<noscript><pre><code># usage rake new_page[my-new-page] or rake new_page[my-new-page.html] or rake new_page (defaults to &quot;new-page.markdown&quot;)
+desc &quot;List all posts with an asterisk if it's published. Advanced usage: 'rake list_posts[pub|unpub]'&quot;
+task :list_posts, :type do |t, args|
+  type = args.type
+  
+  result = &quot;&quot;
+  Dir.glob(&quot;#{source_dir}/#{posts_dir}/*.markdown&quot;).sort.each do |post|
+    file = File.read(post)
+    file =~ /^(---\s*\n.*?\n?)^(---\s*$\n?)/m
+    data = YAML.load($1)
+    
+    case type
+    when &quot;pub&quot; then 
+      result &lt;&lt; &quot;#{File.basename(post)}\n&quot; if data['published'] || data['published'] == nil
+    when &quot;unpub&quot;
+      result &lt;&lt; &quot;#{File.basename(post)}\n&quot; if data['published'] == false
+    else
+      status = data['published'] || data['published'] == nil ? '*' : ' '
+      result &lt;&lt; &quot;#{status} #{File.basename(post)}\n&quot;
+    end
+  end
+  puts result
+end</code></pre></noscript></div>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[將 Octopress Page 依照標題自動索引]]></title>
@@ -1099,34 +1144,6 @@ set LC_ALL=zh_TW.UTF-8
 <p>而那些看似擁有快樂秘訣的人，並不是因為只挑甜頭吃，而是他們懂得品味痛苦。與其說品味痛苦，不如說品味人生，正如開頭所示，不管喜怒哀樂、悲歡離合、愛恨情仇，都是人生的一部分，不能偏心，如果「快樂」、「幸福」是可享受的，自然「痛苦」、「憤怒」應也可享受。</p>
 
 <p>我覺得有些簡單的道理是小時候就已經掌握了，但是隨著長大，刺激與煩惱越來越多，反而卻忘記了當時的本心。是否我們現在都該給自己多一點時間，找回失落的赤子本心，才不致像筆者一樣現在還宅在宿舍裡面發這篇廢文？</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[PTT 不會死]]></title>
-    <link href="http://tonytonyjan.github.com/2011/12/09/5/"/>
-    <updated>2011-12-09T08:31:00+08:00</updated>
-    <id>http://tonytonyjan.github.com/2011/12/09/5</id>
-    <content type="html"><![CDATA[<p><img src="http://tonytonyjan.github.com/images/slum-area/5_205436976_m.jpg"></p>
-
-
-<p>前陣子想到的問題，但還沒有解答，所以這篇被我擱了兩天。完整的問題是這樣的：為什麼現在網路上已經存在許多功能上可以取代 BBS 的 web論壇，PTT 還是不死？</p>
-
-
-<p>Web 勝過 PTT 的項目：</p>
-
-
-<div><ol><li>上手簡單、人性化、圖文並茂</li><li>文章幾乎不會刪除，在 PTT 中的文章只有 m 文才可以保留，如果版主是廢物，就有很多好文章無法被保留（或廢文得以保留）</li><li>BBS 對於文章的回覆只有推文，web 論壇有「討論串」的概念</li></ol></div>
-
-
-<div>但是真正讓 PTT 不死的原因如下：</div>
-
-
-<ol><li>其實就瀏覽文章來看，用鍵盤比滑鼠還快</li><li>不論會員多寡，PTT 24 小時內都有十萬鄉民在線上</li><li>PTT 在 BBS 界稱霸，人潮集中，反觀web 論壇，雖然功能完善，但是人潮被分散各大論壇（例如微風、卡提諾、台灣論壇等等）</li><li>PTT 交流速度快，甚至發個問題幾秒內就有人回覆（效率遠超過奇摩知識+ 和 web 論壇）</li></ol>
-
-
-<div>論壇、討論版這類的東西，互動就是成敗關鍵，互動多自然就不會死，而 PTT 高頻率的互動正是讓他不會死的原因，我曾做過實驗，在 PTT、各論壇、雅虎知識發表相同的問題，在 PTT 回覆的速度總是最高的（但如果是看累積回覆的篇數，大約一個月之後，雅虎知識勝出）。</div>
-
 ]]></content>
   </entry>
   

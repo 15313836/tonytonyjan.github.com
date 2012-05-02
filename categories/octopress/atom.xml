@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Octopress | 不歸錄]]></title>
   <link href="http://tonytonyjan.github.com/categories/octopress/atom.xml" rel="self"/>
   <link href="http://tonytonyjan.github.com/"/>
-  <updated>2012-05-01T23:15:46+08:00</updated>
+  <updated>2012-05-02T15:49:44+08:00</updated>
   <id>http://tonytonyjan.github.com/</id>
   <author>
     <name><![CDATA[大兜]]></name>
@@ -12,6 +12,51 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[List Published or Unpublished Posts in Octopress]]></title>
+    <link href="http://tonytonyjan.github.com/2012/05/02/list-all-posts-rake-task-for-octopress/"/>
+    <updated>2012-05-02T13:36:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/05/02/list-all-posts-rake-task-for-octopress</id>
+    <content type="html"><![CDATA[<h2>What's the Problem?</h2>
+
+<p>We may leave some draft posts in <code>_posts</code> directory, but it comes a problem when we are going to find whether the post is published or not by reading throuh filenames in the future.</p>
+
+<p>To solve this, I created this rake task. It will list all posts each line, and prepend an asterisk if it's published. Just append it in your <code>Rakefile</code> to make it works.</p>
+
+<h3>Usage</h3>
+
+<pre><code>rake list_posts
+rake list_posts[pub|unpub]
+</code></pre>
+
+<p><div><script src='https://gist.github.com/2574782.js?file='></script>
+<noscript><pre><code># usage rake new_page[my-new-page] or rake new_page[my-new-page.html] or rake new_page (defaults to &quot;new-page.markdown&quot;)
+desc &quot;List all posts with an asterisk if it's published. Advanced usage: 'rake list_posts[pub|unpub]'&quot;
+task :list_posts, :type do |t, args|
+  type = args.type
+  
+  result = &quot;&quot;
+  Dir.glob(&quot;#{source_dir}/#{posts_dir}/*.markdown&quot;).sort.each do |post|
+    file = File.read(post)
+    file =~ /^(---\s*\n.*?\n?)^(---\s*$\n?)/m
+    data = YAML.load($1)
+    
+    case type
+    when &quot;pub&quot; then 
+      result &lt;&lt; &quot;#{File.basename(post)}\n&quot; if data['published'] || data['published'] == nil
+    when &quot;unpub&quot;
+      result &lt;&lt; &quot;#{File.basename(post)}\n&quot; if data['published'] == false
+    else
+      status = data['published'] || data['published'] == nil ? '*' : ' '
+      result &lt;&lt; &quot;#{status} #{File.basename(post)}\n&quot;
+    end
+  end
+  puts result
+end</code></pre></noscript></div>
+</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[在 Octopress 加上近期回覆（二）]]></title>
@@ -248,49 +293,6 @@ select * from wp_posts where post_type='post' &amp;&amp; post_author=3 &amp;&amp
 <p>嗯……好險我沒有寫完，因為我後來又發現在底下的回覆，tokkonoPapa 分享了一個 <a href="https://github.com/tokkonopapa/octopress-tagcloud">repository</a>，和我想要做的東西一模一樣。當然，為了不重造輪子，我的網誌就採用了 tokkonoPapa 整理後的程式碼。</p>
 
 <p>使用方式只要將三個檔案放在對應的位置即可，但要注意的是必須在 _config.yml 中設定 default_asides。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[在 Octopress 加上近期回覆]]></title>
-    <link href="http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress/"/>
-    <updated>2012-02-12T19:14:00+08:00</updated>
-    <id>http://tonytonyjan.github.com/2012/02/12/display-recent-comments-in-octopress</id>
-    <content type="html"><![CDATA[<p>octopress 內建的回覆外掛是 <a href="http://disqus.com">disqus</a>。但卻沒有提供在 asides 顯示近期回應的功能，加上我在網路上查不太到別人的寫法，於是我就自己寫了一個，也許對一些人有幫助：</p>
-
-<p>``` html \source_includes\custom\asides\recent_comments.html
-{% if site.disqus_short_name and page.comments != false %}
-<section>
-  <h1>近期回覆</h1>
-  <script type="text/javascript"></p>
-
-<pre><code>function recent_comments(obj){
-  if(obj.response.length){
-    resault = '&lt;ul&gt;';
-    obj.response.forEach(function(response){
-      resault += '&lt;li&gt;';
-      resault += '&lt;a href="'+response.author.profileUrl+'"&gt;&lt;img src="'+response.author.avatar.permalink+'" width=32 height=32 style="float: left; margin-right: 5px;"&gt;&lt;/a&gt;';
-      resault += '&lt;a href="'+response.author.profileUrl+'"&gt;'+response.author.name+'&lt;/a&gt;：';
-      resault += '&lt;span&gt;'+response.message+'&lt;/span&gt;&lt;br&gt;'
-      resault += '&lt;a href="'+response.thread.link+'"&gt;'+response.thread.title+'&lt;/a&gt;&lt;br&gt;'
-      resault += 'at &lt;a href="'+response.url+'"&gt;'+response.createdAt+'&lt;/a&gt;'
-      resault += '&lt;/li&gt;';
-    });
-    resault += '&lt;/ul&gt;';
-    document.write(resault);
-  }else{
-    document.write("目前沒有回覆");
-  }
-};
-</code></pre>
-
-<p>  </script>
-  <script type="text/javascript" src="http://disqus.com/api/3.0/forums/listPosts.jsonp?forum=tonytonyjan-blog&api_key=IVQOSOjZknRNZi3rYa3gxFA5CCLjuGP9ojHi3TSeUenFl2mckhh3gl9k9NqGDetu&related=thread&callback=recent_comments"></script>
-</section>
-{% endif %}
-```</p>
-
-<p>備註：需要用到 <a href="http://disqus.com">disqus</a> 提供的 <a href="http://disqus.com/api">API</a>。</p>
 ]]></content>
   </entry>
   

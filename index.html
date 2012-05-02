@@ -9,10 +9,7 @@
   <meta name="author" content="大兜">
 
   
-  <meta name="description" content="範例展示、文件
-gist 用法懶人包 下載 Indexer for Octopress。
-將 indexer.rb 複製到 plugins 目錄下。
-新增 source\_includes\custom\asides\indexer.html。 {% if page.indexer == &hellip;">
+  <meta name="description" content="What&#8217;s the Problem? We may leave some draft posts in _posts directory, but it comes a problem when we are going to find whether the post is &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -34,10 +31,7 @@ gist 用法懶人包 下載 Indexer for Octopress。
 
 
 <meta itemprop="name" content="不歸錄">
-<meta itemprop="description" content="範例展示、文件
-gist 用法懶人包 下載 Indexer for Octopress。
-將 indexer.rb 複製到 plugins 目錄下。
-新增 source\_includes\custom\asides\indexer.html。 {% if page.indexer == &hellip;">
+<meta itemprop="description" content="What&#8217;s the Problem? We may leave some draft posts in _posts directory, but it comes a problem when we are going to find whether the post is &hellip;">
 <meta itemprop="image" content="/favicon.png">
 
   
@@ -90,6 +84,80 @@ gist 用法懶人包 下載 Indexer for Octopress。
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2012/05/02/list-all-posts-rake-task-for-octopress/">List Published or Unpublished Posts in Octopress</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-02T13:36:00+08:00" pubdate data-updated="true">May 2<span>nd</span>, 2012</time>
+        
+         | <a href="/2012/05/02/list-all-posts-rake-task-for-octopress/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>What&#8217;s the Problem?</h2>
+
+<p>We may leave some draft posts in <code>_posts</code> directory, but it comes a problem when we are going to find whether the post is published or not by reading throuh filenames in the future.</p>
+
+<p>To solve this, I created this rake task. It will list all posts each line, and prepend an asterisk if it&#8217;s published. Just append it in your <code>Rakefile</code> to make it works.</p>
+
+<h3>Usage</h3>
+
+<pre><code>rake list_posts
+rake list_posts[pub|unpub]
+</code></pre>
+
+<div><script src='https://gist.github.com/2574782.js?file='></script>
+<noscript><pre><code># usage rake new_page[my-new-page] or rake new_page[my-new-page.html] or rake new_page (defaults to &quot;new-page.markdown&quot;)
+desc &quot;List all posts with an asterisk if it's published. Advanced usage: 'rake list_posts[pub|unpub]'&quot;
+task :list_posts, :type do |t, args|
+  type = args.type
+  
+  result = &quot;&quot;
+  Dir.glob(&quot;#{source_dir}/#{posts_dir}/*.markdown&quot;).sort.each do |post|
+    file = File.read(post)
+    file =~ /^(---\s*\n.*?\n?)^(---\s*$\n?)/m
+    data = YAML.load($1)
+    
+    case type
+    when &quot;pub&quot; then 
+      result &lt;&lt; &quot;#{File.basename(post)}\n&quot; if data['published'] || data['published'] == nil
+    when &quot;unpub&quot;
+      result &lt;&lt; &quot;#{File.basename(post)}\n&quot; if data['published'] == false
+    else
+      status = data['published'] || data['published'] == nil ? '*' : ' '
+      result &lt;&lt; &quot;#{status} #{File.basename(post)}\n&quot;
+    end
+  end
+  puts result
+end</code></pre></noscript></div>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -577,80 +645,6 @@ page_asides: [custom/asides/indexer.html] # 加上這個
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2012/03/03/string-and-symbol-in-controller/">Params["key"] 和 Params[:key]</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-03T15:31:00+08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2012</time>
-        
-         | <a href="/2012/03/03/string-and-symbol-in-controller/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>今天在寫學長託付的 API Server 時，突然對 controller 中用到的 params 變數感到好奇，我想知道為什麼 <code>params[:id]</code> 和 <code>params["id"]</code> 都可以 access 同一份資料，於是展開了 trace code 奇幻之旅。</p>
-
-<p>我臨時寫了一個程式，先 trace <code>params[:id]</code>，再 trace <code>params["id"]</code>，並用等於符號分隔，看他們之間的不同：</p>
-
-<figure class='code'><figcaption><span>Experiment in controller</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">set_trace_func</span> <span class="nb">proc</span> <span class="p">{</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">binding</span><span class="p">,</span> <span class="n">classname</span><span class="o">|</span>
-</span><span class='line'>   <span class="nb">printf</span> <span class="s2">&quot;%8s %s:%-2d %10s %8s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">classname</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
-</span><span class='line'><span class="nb">set_trace_func</span> <span class="kp">nil</span>
-</span><span class='line'>
-</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;=====================&quot;</span> <span class="c1"># 我不希望 trace 到 puts method</span>
-</span><span class='line'>
-</span><span class='line'><span class="nb">set_trace_func</span> <span class="nb">proc</span> <span class="p">{</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">binding</span><span class="p">,</span> <span class="n">classname</span><span class="o">|</span>
-</span><span class='line'>   <span class="nb">printf</span> <span class="s2">&quot;%8s %s:%-2d %10s %8s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">classname</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="n">params</span><span class="o">[</span><span class="s2">&quot;id&quot;</span><span class="o">]</span>
-</span><span class='line'><span class="nb">set_trace_func</span> <span class="kp">nil</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/2012/03/03/string-and-symbol-in-controller/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/page/2/">&larr; 更舊</a>
@@ -689,6 +683,10 @@ page_asides: [custom/asides/indexer.html] # 加上這個
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/2012/05/02/list-all-posts-rake-task-for-octopress/">List Published or Unpublished Posts in Octopress</a>
+      </li>
+    
+      <li class="post">
         <a href="/2012/05/01/indexer-for-octopress/">將 Octopress Page 依照標題自動索引</a>
       </li>
     
@@ -724,10 +722,6 @@ page_asides: [custom/asides/indexer.html] # 加上這個
         <a href="/2012/03/05/cooperation-and-connection/">團隊、溝通管道</a>
       </li>
     
-      <li class="post">
-        <a href="/2012/03/03/string-and-symbol-in-controller/">params["key"] 和 params[:key]</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -738,7 +732,7 @@ page_asides: [custom/asides/indexer.html] # 加上這個
 </section>
 <section>
   <h1>文章分類</h1>
-    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.33149171270718%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.65745856353591%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(181)</a> <a href='/categories/disqus' style='font-size: 100.66298342541437%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.32596685082873%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.33149171270718%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.65193370165746%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.32044198895028%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.33149171270718%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.33149171270718%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 114.25414364640883%'>Life(43)</a> <a href='/categories/music' style='font-size: 100.33149171270718%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.65745856353591%'>Octopress(5)</a> <a href='/categories/octopress-' style='font-size: 100.33149171270718%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.66298342541437%'>Rails(2)</a> <a href='/categories/regex' style='font-size: 100.33149171270718%'>Regex(1)</a> <a href='/categories/revision-control' style='font-size: 100.33149171270718%'>Revision-control(1)</a> <a href='/categories/ruby' style='font-size: 100.33149171270718%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.33149171270718%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.33149171270718%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.33149171270718%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.33149171270718%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.60773480662984%'>Works(32)</a> </span>
+    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.33149171270718%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.65745856353591%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(181)</a> <a href='/categories/disqus' style='font-size: 100.66298342541437%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.32596685082873%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.33149171270718%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.65193370165746%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.32044198895028%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.33149171270718%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.33149171270718%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 114.25414364640883%'>Life(43)</a> <a href='/categories/music' style='font-size: 100.33149171270718%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.98895027624309%'>Octopress(6)</a> <a href='/categories/octopress-' style='font-size: 100.33149171270718%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.66298342541437%'>Rails(2)</a> <a href='/categories/regex' style='font-size: 100.33149171270718%'>Regex(1)</a> <a href='/categories/revision-control' style='font-size: 100.33149171270718%'>Revision-control(1)</a> <a href='/categories/ruby' style='font-size: 100.33149171270718%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.33149171270718%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.33149171270718%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.33149171270718%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.33149171270718%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.60773480662984%'>Works(32)</a> </span>
 </section>
 
 

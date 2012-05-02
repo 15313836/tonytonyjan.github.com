@@ -9,7 +9,7 @@
   <meta name="author" content="大兜">
 
   
-  <meta name="description" content="安裝 Ruby 雖然你也可以安裝 RVM 或者自行編譯，但既然是在 Windows 下，建議直接使用 Ruby Installer 最省事。在此要下載兩個東西，一就是 ruby ，另一個則是 development kit。之所以要後者是因為屆時在安裝 Octopress 時，所需要用到的 &hellip;">
+  <meta name="description" content="今天在寫學長託付的 API Server 時，突然對 controller 中用到的 params 變數感到好奇，我想知道為什麼 params[:id] 和 params["id"] 都可以 access 同一份資料，於是展開了 trace code 奇幻之旅。 我臨時寫了一個程式，先 trace &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +80,80 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2012/03/03/string-and-symbol-in-controller/">Params["key"] 和 Params[:key]</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-03T15:31:00+08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2012</time>
+        
+         | <a href="/2012/03/03/string-and-symbol-in-controller/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>今天在寫學長託付的 API Server 時，突然對 controller 中用到的 params 變數感到好奇，我想知道為什麼 <code>params[:id]</code> 和 <code>params["id"]</code> 都可以 access 同一份資料，於是展開了 trace code 奇幻之旅。</p>
+
+<p>我臨時寫了一個程式，先 trace <code>params[:id]</code>，再 trace <code>params["id"]</code>，並用等於符號分隔，看他們之間的不同：</p>
+
+<figure class='code'><figcaption><span>Experiment in controller</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">set_trace_func</span> <span class="nb">proc</span> <span class="p">{</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">binding</span><span class="p">,</span> <span class="n">classname</span><span class="o">|</span>
+</span><span class='line'>   <span class="nb">printf</span> <span class="s2">&quot;%8s %s:%-2d %10s %8s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">classname</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+</span><span class='line'><span class="nb">set_trace_func</span> <span class="kp">nil</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="s2">&quot;=====================&quot;</span> <span class="c1"># 我不希望 trace 到 puts method</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">set_trace_func</span> <span class="nb">proc</span> <span class="p">{</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">binding</span><span class="p">,</span> <span class="n">classname</span><span class="o">|</span>
+</span><span class='line'>   <span class="nb">printf</span> <span class="s2">&quot;%8s %s:%-2d %10s %8s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">classname</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">params</span><span class="o">[</span><span class="s2">&quot;id&quot;</span><span class="o">]</span>
+</span><span class='line'><span class="nb">set_trace_func</span> <span class="kp">nil</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/2012/03/03/string-and-symbol-in-controller/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -612,63 +686,6 @@ gem update
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2011/12/09/5/">PTT 不會死</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-12-09T08:31:00+08:00" pubdate data-updated="true">Dec 9<span>th</span>, 2011</time>
-        
-         | <a href="/2011/12/09/5/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><img src="/images/slum-area/5_205436976_m.jpg"></p>
-
-
-<p>前陣子想到的問題，但還沒有解答，所以這篇被我擱了兩天。完整的問題是這樣的：為什麼現在網路上已經存在許多功能上可以取代 BBS 的 web論壇，PTT 還是不死？</p>
-
-
-<p>Web 勝過 PTT 的項目：</p>
-
-
-<div><ol><li>上手簡單、人性化、圖文並茂</li><li>文章幾乎不會刪除，在 PTT 中的文章只有 m 文才可以保留，如果版主是廢物，就有很多好文章無法被保留（或廢文得以保留）</li><li>BBS 對於文章的回覆只有推文，web 論壇有「討論串」的概念</li></ol></div>
-
-
-<div>但是真正讓 PTT 不死的原因如下：</div>
-
-
-<ol><li>其實就瀏覽文章來看，用鍵盤比滑鼠還快</li><li>不論會員多寡，PTT 24 小時內都有十萬鄉民在線上</li><li>PTT 在 BBS 界稱霸，人潮集中，反觀web 論壇，雖然功能完善，但是人潮被分散各大論壇（例如微風、卡提諾、台灣論壇等等）</li><li>PTT 交流速度快，甚至發個問題幾秒內就有人回覆（效率遠超過奇摩知識+ 和 web 論壇）</li></ol>
-
-
-<div>論壇、討論版這類的東西，互動就是成敗關鍵，互動多自然就不會死，而 PTT 高頻率的互動正是讓他不會死的原因，我曾做過實驗，在 PTT、各論壇、雅虎知識發表相同的問題，在 PTT 回覆的速度總是最高的（但如果是看累積回覆的篇數，大約一個月之後，雅虎知識勝出）。</div>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/page/3/">&larr; 更舊</a>
@@ -709,6 +726,10 @@ gem update
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/2012/05/02/list-all-posts-rake-task-for-octopress/">List Published or Unpublished Posts in Octopress</a>
+      </li>
+    
+      <li class="post">
         <a href="/2012/05/01/indexer-for-octopress/">將 Octopress Page 依照標題自動索引</a>
       </li>
     
@@ -744,10 +765,6 @@ gem update
         <a href="/2012/03/05/cooperation-and-connection/">團隊、溝通管道</a>
       </li>
     
-      <li class="post">
-        <a href="/2012/03/03/string-and-symbol-in-controller/">params["key"] 和 params[:key]</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -758,7 +775,7 @@ gem update
 </section>
 <section>
   <h1>文章分類</h1>
-    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.33149171270718%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.65745856353591%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(181)</a> <a href='/categories/disqus' style='font-size: 100.66298342541437%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.32596685082873%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.33149171270718%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.65193370165746%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.32044198895028%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.33149171270718%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.33149171270718%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 114.25414364640883%'>Life(43)</a> <a href='/categories/music' style='font-size: 100.33149171270718%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.65745856353591%'>Octopress(5)</a> <a href='/categories/octopress-' style='font-size: 100.33149171270718%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.66298342541437%'>Rails(2)</a> <a href='/categories/regex' style='font-size: 100.33149171270718%'>Regex(1)</a> <a href='/categories/revision-control' style='font-size: 100.33149171270718%'>Revision-control(1)</a> <a href='/categories/ruby' style='font-size: 100.33149171270718%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.33149171270718%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.33149171270718%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.33149171270718%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.33149171270718%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.60773480662984%'>Works(32)</a> </span>
+    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.33149171270718%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.65745856353591%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(181)</a> <a href='/categories/disqus' style='font-size: 100.66298342541437%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.32596685082873%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.33149171270718%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.65193370165746%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.32044198895028%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.33149171270718%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.33149171270718%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 114.25414364640883%'>Life(43)</a> <a href='/categories/music' style='font-size: 100.33149171270718%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.98895027624309%'>Octopress(6)</a> <a href='/categories/octopress-' style='font-size: 100.33149171270718%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.66298342541437%'>Rails(2)</a> <a href='/categories/regex' style='font-size: 100.33149171270718%'>Regex(1)</a> <a href='/categories/revision-control' style='font-size: 100.33149171270718%'>Revision-control(1)</a> <a href='/categories/ruby' style='font-size: 100.33149171270718%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.33149171270718%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.33149171270718%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.33149171270718%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.33149171270718%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.60773480662984%'>Works(32)</a> </span>
 </section>
 
 

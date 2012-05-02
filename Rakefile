@@ -378,6 +378,9 @@ end
 
 desc "Short cut for pushing source, generating and deploying website"
 task :go do
+  # integrate the stached
+  Rake::Task[:integrate].execute
+
   # push source
   system "git add ."
   system "git add -u"
@@ -385,6 +388,7 @@ task :go do
   message = "Source updated at #{Time.now.utc}"
   system "git commit -m \"#{message}\""
   system "git push origin source"
+  
   # deploy
   system "set LANG=zh_TW.UTF-8"
   system "set LC_ALL=zh_TW.UTF-8"

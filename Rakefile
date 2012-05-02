@@ -375,3 +375,43 @@ task :list do
   puts "Tasks: #{(Rake::Task.tasks - [Rake::Task[:list]]).join(', ')}"
   puts "(type rake -T for more detail)\n\n"
 end
+
+desc "Short cut for pushing source, generating and deploying website"
+task :go do
+  # push source
+  system "git add ."
+  system "git add -u"
+  system "git status"
+  message = "Source updated at #{Time.now.utc}"
+  system "git commit -m \"#{message}\""
+  system "git push origin source"
+  # deploy
+  system "set LANG=zh_TW.UTF-8"
+  system "set LC_ALL=zh_TW.UTF-8"
+  Rake::Task[:generate].execute
+  Rake::Task[:deploy].execute
+end
+
+# usage rake new_page[my-new-page] or rake new_page[my-new-page.html] or rake new_page (defaults to "new-page.markdown")
+desc "List all posts with an asterisk if it's published. Advanced usage: 'rake list_posts[pub|unpub]'"
+task :list_posts, :type do |t, args|
+  type = args.type
+  
+  result = ""
+  Dir.glob("#{source_dir}/#{posts_dir}/*.markdown").sort.each do |post|
+    file = File.read(post)
+    file =~ /^(---\s*\n.*?\n?)^(---\s*$\n?)/m
+    data = YAML.load($1)
+    
+    case type
+    when "pub" then 
+      result << "#{File.basename(post)}\n" if data['published'] || data['published'] == nil
+    when "unpub"
+      result << "#{File.basename(post)}\n" if data['published'] == false
+    else
+      status = data['published'] || data['published'] == nil ? '*' : ' '
+      result << "#{status} #{File.basename(post)}\n"
+    end
+  end
+  puts result
+end

@@ -13,6 +13,7 @@ indexer: true
 A tool for Octopress to generate IDs in heading tags and index list aside. It helps you easily build a tutorial page with many chapters.
 
 *   [gist](https://gist.github.com/2565249/6151c81f7af333d5c1d9dd0b2bdcba2c7a966dca)
+*   [demo repo](https://github.com/tonytonyjan/octopress-indexer-demo)
 
 ## Features
 

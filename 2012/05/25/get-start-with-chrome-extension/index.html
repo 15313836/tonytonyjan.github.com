@@ -371,10 +371,14 @@
 </ul>
 
 
-<p>基本上可以在 chrome 開發人員視窗中能做到的事情，content script 都可以做到。但這功能看似強大，卻有些限制：
-*   <strong>無法</strong>呼叫 <code>chrome.* APIs</code> 這類的 API（<code>chrome.extension</code> 除外）
-*   <strong>無法</strong>使用 extension page 上的變數和函式（例如 background pages）
-*   <strong>無法</strong>使用網頁上的變數和函式</p>
+<p>基本上可以在 chrome 開發人員視窗中能做到的事情，content script 都可以做到。但這功能看似強大，卻有些限制：</p>
+
+<ul>
+<li><strong>無法</strong>呼叫 <code>chrome.* APIs</code> 這類的 API（<code>chrome.extension</code> 除外）</li>
+<li><strong>無法</strong>使用 extension page 上的變數和函式（例如 background pages）</li>
+<li><strong>無法</strong>使用網頁上的變數和函式</li>
+</ul>
+
 
 <p>但這些限制可以透過 <code>chrome.extension</code> 與 extension pages 做溝通。</p>
 

@@ -183,6 +183,7 @@ Browser action 適合在需要一個常駐的功能放在 Google 工具列時使
 *   去掉廣告
 
 基本上可以在 chrome 開發人員視窗中能做到的事情，content script 都可以做到。但這功能看似強大，卻有些限制：
+
 *   **無法**呼叫 `chrome.* APIs` 這類的 API（`chrome.extension` 除外）
 *   **無法**使用 extension page 上的變數和函式（例如 background pages）
 *   **無法**使用網頁上的變數和函式

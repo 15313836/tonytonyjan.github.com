@@ -1199,6 +1199,10 @@
         <lastmod>2012-05-04T14:56:52+08:00</lastmod>
     </url>
     <url>
+        <loc>http://tonytonyjan.github.com/2012/05/25/get-start-with-chrome-extension/</loc>
+        <lastmod>2012-05-25T15:42:04+08:00</lastmod>
+    </url>
+    <url>
         <loc>http://tonytonyjan.github.com/blog/about/</loc>
         <lastmod>2012-05-01T22:37:28+08:00</lastmod>
     </url>
@@ -1208,7 +1212,7 @@
     </url>
     <url>
         <loc>http://tonytonyjan.github.com/blog/archives/</loc>
-        <lastmod>2012-05-04T14:56:52+08:00</lastmod>
+        <lastmod>2012-05-25T15:42:04+08:00</lastmod>
     </url>
     <url>
         <loc>http://tonytonyjan.github.com/blog/octopress-indexer/</loc>
@@ -1224,6 +1228,6 @@
     </url>
     <url>
         <loc>http://tonytonyjan.github.com/</loc>
-        <lastmod>2012-05-04T14:56:52+08:00</lastmod>
+        <lastmod>2012-05-25T15:42:04+08:00</lastmod>
     </url>
 </urlset>

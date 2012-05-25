@@ -9,7 +9,7 @@
   <meta name="author" content="大兜">
 
   
-  <meta name="description" content="在一個團隊裡面，有一個常遇到的問題就是訊息的傳達不夠全面，尤其是在遠距團隊時更是如此。一個團隊的訊息無法在最短時間傳達給每個人，很多人會認為這是隊長的責任，殊不知隊員如果沒有身份的自覺，這個團隊除非隊長累死，否則仍有溝通的障礙。 舉個例子，今天身在一個團隊的隊長，他的夥伴一個用 Facebook &hellip;">
+  <meta name="description" content="這篇文章會告訴你在 windows 檔案總管，如何用右鍵快速在某個目錄下打開命令字元。 因為我發現周遭有很多習慣於命令列工作的人，仍傻呼呼的執行 cmd.exe 之後，一次又一次的 cd、dir，直到抵敵目的地。抑或先打開檔案總管，到目的地之後再複製目錄，貼到命令列，然後在前面再加個 cd。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +80,79 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2012/03/06/shortcut-to-open-command-prompt-in-current-directory/">在目錄下打開命令提示字元</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-06T23:03:00+08:00" pubdate data-updated="true">Mar 6<span>th</span>, 2012</time>
+        
+         | <a href="/2012/03/06/shortcut-to-open-command-prompt-in-current-directory/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>這篇文章會告訴你在 windows 檔案總管，如何用右鍵快速在某個目錄下打開命令字元。</p>
+
+<p>因為我發現周遭有很多習慣於命令列工作的人，仍傻呼呼的執行 <code>cmd.exe</code> 之後，一次又一次的 <code>cd</code>、<code>dir</code>，直到抵敵目的地。抑或先打開檔案總管，到目的地之後再複製目錄，貼到命令列，然後在前面再加個 <code>cd</code>。雖然後者又快了一點。若是可以對目錄右鍵之後，有個選項能打開當前目錄的命令提示字元，豈不是非常方便？</p>
+
+<h2>Windows 7</h2>
+
+<ol>
+<li>在檔案總管中選取你想要打開命令列的資料夾</li>
+<li><code>Shift</code> + 右鍵</li>
+<li>按下 &#8216;W&#8217;（或者左鍵點擊「開啟命令視窗」）</li>
+</ol>
+
+
+<p><img src="/images/right-click-prompt.png"></p>
+
+<h2>Windows XP</h2>
+
+<h3>DIY</h3>
+
+<p>（這個方法需要動到你的登錄檔，如果你不敢改或者不擅長……請跳到下面的簡易版）</p>
+
+<ol>
+<li>執行 <code>regedit</code></li>
+<li>找到 HKEY_LOCAL_MACHINE/Software/Classes/Folder/Shell</li>
+<li>新增一個鍵，命名為 <code>Command Prompt</code></li>
+<li>預設值設定成 <code>Command Prompt Here</code></li>
+<li>新增一個鍵，命名為 <code>Command</code></li>
+<li>預設值設定成 <code>cmd.exe /k pushd %L</code></li>
+</ol>
+
+
+<p>之後你只要在資料夾上點右鍵，就會出現一個叫 <code>Command Prompt Here</code> 的選項。</p>
+
+<h3>簡單方法</h3>
+
+<p><a href="http://windows.microsoft.com/en-US/windows/downloads/windows-xp">Windows 自己有開發這樣的功能，在 Power Toys 下，下載之後安裝就行了。</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -601,63 +674,6 @@ gem update
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2011/12/14/3/">From Taipei to Oulan Bator（MIT 台灣誌片尾曲）</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-12-14T08:32:19+08:00" pubdate data-updated="true">Dec 14<span>th</span>, 2011</time>
-        
-         | <a href="/2011/12/14/3/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><iframe width="420" height="315" src="http://www.youtube.com/embed/2WkxjOyhIY0?rel=0#t=5m49s" frameborder="0" allowfullscreen=""></iframe></p>
-
-
-<p><iframe width="180" height="60" style="border-style: initial; border-color: initial;" marginwidth="0" marginheight="0" src="http://vlog.xuite.net/embed/Wkhzd203LTQwNjkxMTUuZmx2?ar=0&amp;as=0" scrolling="no" frameborder="0"></iframe></p>
-
-
-<p>（From Taipei To Oulan Bator 完整版音樂）</p>
-
-
-<p>有看過「MIT台灣誌」的朋友，應該對於他的片尾曲不陌生吧？這首叫「From Taipei to Oulan Bator」的歌，是由郭英男與馬蘭吟唱隊所唱，且在國外發行，因為很好聽，是在網路上詢問度非常高的歌曲。而筆者也是每次聽到都有種心靈受到洗滌的感覺，於是開始搜尋這首歌曲的來歷。</p>
-
-
-<p><span><span>有趣的是，這首歌的來歷眾說紛紜，常聽到的說法是這首歌是在韓國錄製，但事實上並非如此。經過筆者蒐集資料之後，確定</span></span>「From Taipei to Oulan Bator」來自於一個叫「<a href="http://www.arilprivatestudio.be/khe/index.php">Kheops</a>」的樂團（在台灣恐怕鮮為人知），並收錄在 1996 年的第一個專輯「Pyramix」。</p>
-
-
-<p><img src="/images/slum-area/3_205547401_m.jpg"></p>
-
-
-<p><span><span>Kheops 是由 Aril Laury 與 Timothy Hagelstein 所主導，結合藝術、音樂、與世界各國的歌手與樂手的音樂團體。Aril Laury 負責詞曲，編曲，聲音演出。Timothy Hagelstein 負責混音及後製。</span></span></p>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/page/3/">&larr; 更舊</a>
@@ -698,6 +714,10 @@ gem update
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/2012/05/25/get-start-with-chrome-extension/">大兜的 Chrome Extension 學習筆記</a>
+      </li>
+    
+      <li class="post">
         <a href="/2012/05/04/freeze-the-balls/">冰冰涼涼的 Ju-Ju</a>
       </li>
     
@@ -733,10 +753,6 @@ gem update
         <a href="/2012/03/08/using-sinatra-for-local-javascript-development/">使用 Sinatra、HFS 在本地開發 Javascript</a>
       </li>
     
-      <li class="post">
-        <a href="/2012/03/06/shortcut-to-open-command-prompt-in-current-directory/">在目錄下打開命令提示字元</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -747,7 +763,7 @@ gem update
 </section>
 <section>
   <h1>文章分類</h1>
-    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.32432432432432%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.62162162162163%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(185)</a> <a href='/categories/disqus' style='font-size: 100.64864864864865%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.29729729729729%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.32432432432432%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.5945945945946%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.27027027027027%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.32432432432432%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.32432432432432%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 112.64864864864865%'>Life(39)</a> <a href='/categories/mercurial' style='font-size: 100.32432432432432%'>Mercurial(1)</a> <a href='/categories/music' style='font-size: 100.32432432432432%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.94594594594595%'>Octopress(6)</a> <a href='/categories/octopress-' style='font-size: 100.32432432432432%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.64864864864865%'>Rails(2)</a> <a href='/categories/recollection' style='font-size: 100.32432432432432%'>Recollection(1)</a> <a href='/categories/regex' style='font-size: 100.32432432432432%'>Regex(1)</a> <a href='/categories/ruby' style='font-size: 100.32432432432432%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.32432432432432%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.32432432432432%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.32432432432432%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.32432432432432%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.37837837837839%'>Works(32)</a> </span>
+    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.32432432432432%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.62162162162163%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(185)</a> <a href='/categories/chrome' style='font-size: 100.32432432432432%'>Chrome(1)</a> <a href='/categories/disqus' style='font-size: 100.64864864864865%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.29729729729729%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.32432432432432%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.5945945945946%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.27027027027027%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.32432432432432%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.32432432432432%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 112.64864864864865%'>Life(39)</a> <a href='/categories/mercurial' style='font-size: 100.32432432432432%'>Mercurial(1)</a> <a href='/categories/music' style='font-size: 100.32432432432432%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.94594594594595%'>Octopress(6)</a> <a href='/categories/octopress-' style='font-size: 100.32432432432432%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.64864864864865%'>Rails(2)</a> <a href='/categories/recollection' style='font-size: 100.32432432432432%'>Recollection(1)</a> <a href='/categories/regex' style='font-size: 100.32432432432432%'>Regex(1)</a> <a href='/categories/ruby' style='font-size: 100.32432432432432%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.32432432432432%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.32432432432432%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.32432432432432%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.32432432432432%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.37837837837839%'>Works(32)</a> </span>
 </section>
 
 

@@ -1,0 +1,708 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>大兜的 Chrome Extension 學習筆記 - 不歸錄</title>
+  <meta name="author" content="大兜">
+
+  
+  <meta name="description" content="要寫 Chrome Extension 的先決條件是擁有網頁基礎，因為寫 Chrome Extension 會用到 HTML、Javascript、CSS，如果還不會這些東西，建議在學習 Chrome Extension 之前，先把這些技能磨練好。 這篇介紹會針對 Chrome Extension &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tonytonyjan.github.com/2012/05/25/get-start-with-chrome-extension">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="不歸錄" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-29458592-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">不歸錄</a></h1>
+  
+    <h2>程式X鋼琴X雙馬尾</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tonytonyjan.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">首頁</a></li>
+  <li><a href="/blog/archives">文章列表</a></li>
+  <li><a href="/blog/about">關於我</a></li>
+  <li><a href="/blog/works">作品集</a></li>
+  <li><a href="/blog/quotes">兜語錄</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">大兜的 Chrome Extension 學習筆記</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-25T12:12:00+08:00" pubdate data-updated="true">May 25<span>th</span>, 2012</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>要寫 Chrome Extension 的先決條件是擁有網頁基礎，因為寫 Chrome Extension 會用到 HTML、Javascript、CSS，如果還不會這些東西，建議在學習 Chrome Extension 之前，先把這些技能磨練好。</p>
+
+<p>這篇介紹會針對 Chrome Extension 的 manifest 結構、檔案結構以及一些常用到的部份做簡單的介紹，包括 Browser Action、Page Action、Background Page 和 Content Script。</p>
+
+<!-- more -->
+
+
+<h2>架構簡介</h2>
+
+<h3>Background Pages</h3>
+
+<p>大多外掛會有一個 background page 常駐在背景，可能是一個 HTML 或者 javascript 檔，外掛的功能與邏輯都被定義在此，然後透過 API 與 UI（browser actions 或 page actions）做溝通。</p>
+
+<p><img src="/images/arch-1.gif"></p>
+
+<h3>UI Pages</h3>
+
+<p>Chrome Extension 的 UI 介面使用的是 HTML，例如我們可以在 browser action 定義一個 popup.html ：</p>
+
+<p><img src="/images/arch-2.gif"></p>
+
+<p>Chrome Extension UI：
+*   Browser Actions
+*   Page Actions
+*   Desktop Notifications
+*   Omnibox
+*   Override Pages
+*   Options Pages
+*   Context Menu：右鍵出現的內容</p>
+
+<h2>Chrome Extension = Manifest + Web Assets</h2>
+
+<p>一個 Chrome Extension 由一個 <code>manifest.json</code> 和其他網頁檔案組成，檔案目錄大概會像這個樣子：</p>
+
+<p><img src="/images/chrome-ext.png"></p>
+
+<p>除了 <code>manifest.json</code> 之外，其餘的檔案都是可選的，所以一個最簡單的（不具任何功能的） Chrome Extension 可以只由一個 <code>manifest.json</code> 組成，其他的檔案需要與否則視 <code>manifest.json</code> 裡頭的設定。Chrome Extension 之於 <code>manifest.json</code> 就像人之於個資一樣，裡面描述所有關於這個 Extension 的資料，包括名稱、敘述、版本、語言、使用的圖片等等。</p>
+
+<h3>manifest.json 簡介</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">//</span> <span class="err">必要</span>
+</span><span class='line'>  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Extension&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;versionString&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;manifest_version&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="err">//</span> <span class="err">建議，非必要</span>
+</span><span class='line'>  <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A plain text description&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;icons&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="err">...</span> <span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;default_locale&quot;</span><span class="p">:</span> <span class="s2">&quot;en&quot;</span><span class="p">,</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="err">//</span> <span class="err">選一個</span>
+</span><span class='line'>  <span class="nt">&quot;browser_action&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;page_action&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;theme&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;app&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="err">//</span> <span class="err">其他視情況需要的設定</span>
+</span><span class='line'>  <span class="nt">&quot;background&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;chrome_url_overrides&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;content_scripts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;content_security_policy&quot;</span><span class="p">:</span> <span class="s2">&quot;policyString&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;file_browser_handlers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;homepage_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://path/to/homepage&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;incognito&quot;</span><span class="p">:</span> <span class="s2">&quot;spanning&quot;</span> <span class="err">or</span> <span class="s2">&quot;split&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;intents&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;publicKey&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;minimum_chrome_version&quot;</span><span class="p">:</span> <span class="s2">&quot;versionString&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;nacl_modules&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;offline_enabled&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;omnibox&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="nt">&quot;keyword&quot;</span><span class="p">:</span> <span class="s2">&quot;aString&quot;</span> <span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;options_page&quot;</span><span class="p">:</span> <span class="s2">&quot;aFile.html&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;permissions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;plugins&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;requirements&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;update_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://path/to/updateInfo.xml&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;web_accessible_resources&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>version</h4>
+
+<p>代表該 Extension 的版本，最多由四個整數組成，並且用 <code>.</code> 分開，數字必須介在 0 到 65535 之間，而且不可以以 0 當開頭，舉例：</p>
+
+<ul>
+<li>錯誤：
+
+<ul>
+<li>&#8220;version&#8221;: &#8220;99999&#8221;</li>
+<li>&#8220;version&#8221;: &#8220;032&#8221;</li>
+</ul>
+</li>
+<li>正確
+
+<ul>
+<li>&#8220;version&#8221;: &#8220;1&#8221;</li>
+<li>&#8220;version&#8221;: &#8220;1.0&#8221;</li>
+<li>&#8220;version&#8221;: &#8220;2.10.2&#8221;</li>
+<li>&#8220;version&#8221;: &#8220;3.1.2.4567&#8221;</li>
+</ul>
+</li>
+</ul>
+
+
+<h4>manifest_version</h4>
+
+<p>一個代表 manifest file 格式版本的整數，如果使用的是 Chrome 18 以上，則應該設定成 2。</p>
+
+<pre><code>"manifest_version": 2
+</code></pre>
+
+<p>可以在<a href="http://code.google.com/chrome/extensions/manifestVersion.html">這裡</a>查閱版本 1 和 2 之間的差別。</p>
+
+<h3>icons</h3>
+
+<p>這邊可以定義 Chrome extension 的 logo。盡量是 PNG 格式，因為 Webkit 對 PNG 的透明度轉換最好。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;icons&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;16&quot;</span><span class="p">:</span> <span class="s2">&quot;icon16.png&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;48&quot;</span><span class="p">:</span> <span class="s2">&quot;icon48.png&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;128&quot;</span><span class="p">:</span> <span class="s2">&quot;icon128.png&quot;</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>128x128：用在安裝時</li>
+<li>48x48：在 <code>chrome://extensions</code> 裡顯示</li>
+<li>16x16：favicon</li>
+</ul>
+
+
+<h2>Browser Action</h2>
+
+<p><img src="/images/browser-action.png"></p>
+
+<p>Browser action 適合在需要一個常駐的功能放在 Google 工具列時使用，可以加上 tooltip、badge（例如收到幾封信） 和 popup。</p>
+
+<h3>Manifest</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;browser_action&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;default_icon&quot;</span><span class="p">:</span> <span class="s2">&quot;icon19.png&quot;</span><span class="p">,</span>     <span class="err">//</span> <span class="err">可選</span>
+</span><span class='line'>    <span class="nt">&quot;default_title&quot;</span><span class="p">:</span> <span class="s2">&quot;Tooltip title&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">可選</span>
+</span><span class='line'>    <span class="nt">&quot;default_popup&quot;</span><span class="p">:</span> <span class="s2">&quot;popup.html&quot;</span>     <span class="err">//</span> <span class="err">可選，滑鼠單擊會呈現的內容</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Page Action</h2>
+
+<p><img src="/images/page-action.png"></p>
+
+<p>類似 browser action，差別在於 page action 用於特定網頁才需要的功能，由於 browser action 常駐時會佔用一部份的記憶體，如果你的功能需要在特定狀況下才啟用，建議用 page action 取代 browser action。常見應用是 RSS 訂閱（只有網頁提供 RSS 時才啟用）。</p>
+
+<h3>Manifest</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;page_action&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;default_icon&quot;</span><span class="p">:</span> <span class="s2">&quot;icons/foo.png&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">可選</span>
+</span><span class='line'>    <span class="nt">&quot;default_title&quot;</span><span class="p">:</span> <span class="s2">&quot;Tooltip title&quot;</span><span class="p">,</span>    <span class="err">//</span> <span class="err">可選</span>
+</span><span class='line'>    <span class="nt">&quot;default_popup&quot;</span><span class="p">:</span> <span class="s2">&quot;popup.html&quot;</span>    <span class="err">//</span> <span class="err">可選，滑鼠單擊會呈現的內容</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>設計原則：</p>
+
+<ul>
+<li>在功能只針對部份網頁時，使用 page action。</li>
+<li>如果功能需要常駐在每個網頁，使用 browser action。</li>
+</ul>
+
+
+<h2>Content Script</h2>
+
+<p>這是筆者認為最有趣的部份，content script 顧名思義可以在頁面裡面嵌入 javascript，他們可以透過 DOM 得知使用者瀏覽的頁面的內容，甚至可以改變這些內容。</p>
+
+<p>這些是 content script 可以做到的事：</p>
+
+<ul>
+<li>爬出所有沒有 <code>&lt;a&gt;</code> 的 URL，為他們加上 <code>&lt;a&gt;</code></li>
+<li>把字放大</li>
+<li>去掉廣告</li>
+</ul>
+
+
+<p>基本上可以在 chrome 開發人員視窗中能做到的事情，content script 都可以做到。但這功能看似強大，卻有些限制：
+*   <strong>無法</strong>呼叫 <code>chrome.* APIs</code> 這類的 API（<code>chrome.extension</code> 除外）
+*   <strong>無法</strong>使用 extension page 上的變數和函式（例如 background pages）
+*   <strong>無法</strong>使用網頁上的變數和函式</p>
+
+<p>但這些限制可以透過 <code>chrome.extension</code> 與 extension pages 做溝通。</p>
+
+<h2>Manifest</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;content_scripts&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;matches&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;http://www.google.com/*&quot;</span><span class="p">],</span>
+</span><span class='line'>      <span class="nt">&quot;css&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;mystyles.css&quot;</span><span class="p">],</span>
+</span><span class='line'>      <span class="nt">&quot;js&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;jquery.js&quot;</span><span class="p">,</span> <span class="s2">&quot;myscript.js&quot;</span><span class="p">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">],</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>matches</h3>
+
+<p>常用的格式：</p>
+
+<ul>
+<li><p>http://127.0.0.1/*</p>
+
+<p>指定某個 host 下的所有 path</p></li>
+<li><p>http://example.org/foo/bar.html</p>
+
+<p>指定某個連結</p></li>
+<li><p><all_urls></p>
+
+<p>在所有的頁面（這樣的狀況不多，但惡作劇的時候可能會用到）</p></li>
+</ul>
+
+
+<p>其他用法<a href="http://code.google.com/chrome/extensions/match_patterns.html">詳見此</a></p>
+
+<h2>Background Pages</h2>
+
+<p>一個 extension 通常要有一個常駐執行的 script，用來控制 Browser UI（page action 或 browser action），例如我們會需要一個常駐的程式去監聽 FB 是否有新的訊息，如果聽到則在 browser actoin 上面顯示 badge，收信亦如是。</p>
+
+<p>同時如果 content script 需要與 UI 做溝通，要定義的 function 都放在這裡。</p>
+
+<h3>Manifest</h3>
+
+<p>如果內容很少，可以寫在一個檔案即可：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;background&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;scripts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;background.js&quot;</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果內容很多，要分成好幾個 <code>.js</code> 檔，則改用以下方式並配合 <code>&lt;script&gt;</code> 標籤：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;background&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;page&quot;</span><span class="p">:</span> <span class="s2">&quot;background.html&quot;</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">大兜</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-25T12:12:00+08:00" pubdate data-updated="true">May 25<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/chrome/'>Chrome</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://tonytonyjan.github.com/2012/05/25/get-start-with-chrome-extension/" data-via="" data-counturl="http://tonytonyjan.github.com/2012/05/25/get-start-with-chrome-extension/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/2012/05/04/freeze-the-balls/" title="Previous Post: 冰冰涼涼的 Ju-Ju">&laquo; 冰冰涼涼的 Ju-Ju</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <iframe src="http://free.timeanddate.com/countdown/i30p7ijg/n241/cf114/cm0/cu4/ct0/cs1/ca0/co1/cr0/ss0/cac000/cpc000/pcfff/tc66c/fs100/szw256/szh108/tat%E8%B7%9D%E9%9B%A2%E7%95%A2%E6%A5%AD%E5%85%B8%E7%A6%AE%E2%80%A6/tac000/tpt%E6%88%91%E7%95%A2%E6%A5%AD%E4%BA%86%EF%BC%81/tpc000/iso2012-06-09T00:00:00" frameborder="0" width="256" height="108"></iframe>
+</section><section>
+  <h1>給我個鼓勵吧＝）</h1>
+  
+    <div style="float: left;" class="g-plusone" data-size="tall" data-annotation="inline" data-href="http://tonytonyjan.heroku.com" data-width="260"></div>
+  
+  
+    <div class="fb-like" data-href="http://tonytonyjan.heroku.com" data-send="false" data-width="260" data-show-faces="true"></div>
+  
+  
+    <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://tonytonyjan.heroku.com" data-text="不歸錄" data-via="tonytonyjan" data-size="large">Tweet</a>
+  
+</section><section>
+  <h1>關於我</h1>
+  <a href="http://www.facebook.com/tonytonyjan"><img src="http://photos-a.ak.fbcdn.net/hphotos-ak-ash4/196443_10150123214557620_714547619_6717277_2177303_a.jpg" alt="很帥的照片" title="大兜本尊"></a>
+  <p>嗨！我叫大兜，一個追求幸福快樂的反逆工程師，喜歡程式、旅行、彈琴和公益。</p>
+</section>
+<section>
+  <h1>音樂作品</h1>
+  <iframe marginwidth='0' marginheight='0' src='http://vlog.xuite.net/embed/OE5JOFRuLTE2MzA2NTguZmx2?v=1.0.1&ar=1' scrolling='no' frameborder='0' width='260' height='85'></iframe>
+  <p>我同時也是個業餘的三腳貓音樂創作者，這是我最喜歡的自創曲之一，我在 <a href="http://www.youtube.com/tonytonyjan">YouTube</a> 放了許多作品，歡迎來欣賞＝）</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2012/05/25/get-start-with-chrome-extension/">大兜的 Chrome Extension 學習筆記</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/05/04/freeze-the-balls/">冰冰涼涼的 Ju-Ju</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/05/02/list-all-posts-rake-task-for-octopress/">List Published or Unpublished Posts in Octopress</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/05/01/indexer-for-octopress/">將 Octopress Page 依照標題自動索引</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/28/sleeping-and-eating/">吃、睡與生活</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/28/lee-shou-quan/">李壽全與他的音樂</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/27/display-recent-comments-in-octopress-2/">在 Octopress 加上近期回覆（二）</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/04/03/raise-my-family/">齊家</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/18/new-light-plan/">新光計畫</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2012/03/08/using-sinatra-for-local-javascript-development/">使用 Sinatra、HFS 在本地開發 Javascript</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h1>近期回覆</h1>
+  <div id="recentcomments" class="dsq-widget"><h2 class="dsq-widget-title">Recent Comments</h2><script type="text/javascript" src="http://tonytonyjan-blog.disqus.com/recent_comments_widget.js?num_items=5&hide_avatars=0&avatar_size=48&excerpt_length=200"></script></div><a href="http://disqus.com/">Powered by Disqus</a>
+</section>
+<section>
+  <h1>文章分類</h1>
+    <span id="tag-cloud"><a href='/categories/asm' style='font-size: 100.32432432432432%'>Asm(1)</a> <a href='/categories/c' style='font-size: 101.62162162162163%'>C(5)</a> <a href='/categories/chatting' style='font-size: 160.0%'>Chatting(185)</a> <a href='/categories/chrome' style='font-size: 100.32432432432432%'>Chrome(1)</a> <a href='/categories/disqus' style='font-size: 100.64864864864865%'>Disqus(2)</a> <a href='/categories/dream' style='font-size: 101.29729729729729%'>Dream(4)</a> <a href='/categories/experience' style='font-size: 100.32432432432432%'>Experience(1)</a> <a href='/categories/freebsd' style='font-size: 102.5945945945946%'>Freebsd(8)</a> <a href='/categories/java' style='font-size: 102.27027027027027%'>Java(7)</a> <a href='/categories/javascript' style='font-size: 100.32432432432432%'>Javascript(1)</a> <a href='/categories/jekyll' style='font-size: 100.32432432432432%'>Jekyll(1)</a> <a href='/categories/life' style='font-size: 112.64864864864865%'>Life(39)</a> <a href='/categories/mercurial' style='font-size: 100.32432432432432%'>Mercurial(1)</a> <a href='/categories/music' style='font-size: 100.32432432432432%'>Music(1)</a> <a href='/categories/octopress' style='font-size: 101.94594594594595%'>Octopress(6)</a> <a href='/categories/octopress-' style='font-size: 100.32432432432432%'>Octopress,(1)</a> <a href='/categories/rails' style='font-size: 100.64864864864865%'>Rails(2)</a> <a href='/categories/recollection' style='font-size: 100.32432432432432%'>Recollection(1)</a> <a href='/categories/regex' style='font-size: 100.32432432432432%'>Regex(1)</a> <a href='/categories/ruby' style='font-size: 100.32432432432432%'>Ruby(1)</a> <a href='/categories/swing' style='font-size: 100.32432432432432%'>Swing(1)</a> <a href='/categories/system' style='font-size: 100.32432432432432%'>System(1)</a> <a href='/categories/windows' style='font-size: 100.32432432432432%'>Windows(1)</a> <a href='/categories/wordpress' style='font-size: 100.32432432432432%'>Wordpress(1)</a> <a href='/categories/works' style='font-size: 110.37837837837839%'>Works(32)</a> </span>
+</section>
+
+
+<section>
+  <h1>噗浪動態</h1>
+  <div style="width:210px; height:375px;">
+    <iframe src="http://www.plurk.com/getWidget?uid=5874158&amp;h=375&amp;w=210&amp;u_info=2&amp;bg=5E5E5E&tl=D3D3D3" width="210" frameborder="0" height="375" scrolling="no"></iframe>
+    <div style="float: right; padding: 1px;">
+      <a href="http://plurk.com/" target="_blank" style="font-size: 10px !important; color: #999 !important; border: none; text-decorate: none;" title="Plurk - A Social Journal for your life">Plurk.com</a>
+    </div>
+  </div>
+</section>
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/106993981418226624133?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - 大兜 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'tonytonyjan-blog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tonytonyjan.github.com/2012/05/25/get-start-with-chrome-extension/';
+        var disqus_url = 'http://tonytonyjan.github.com/2012/05/25/get-start-with-chrome-extension/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

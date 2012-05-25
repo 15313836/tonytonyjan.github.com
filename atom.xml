@@ -4,7 +4,7 @@
   <title><![CDATA[不歸錄]]></title>
   <link href="http://tonytonyjan.github.com/atom.xml" rel="self"/>
   <link href="http://tonytonyjan.github.com/"/>
-  <updated>2012-05-24T15:24:27+08:00</updated>
+  <updated>2012-05-25T15:42:55+08:00</updated>
   <id>http://tonytonyjan.github.com/</id>
   <author>
     <name><![CDATA[大兜]]></name>
@@ -12,6 +12,375 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[大兜的 Chrome Extension 學習筆記]]></title>
+    <link href="http://tonytonyjan.github.com/2012/05/25/get-start-with-chrome-extension/"/>
+    <updated>2012-05-25T12:12:00+08:00</updated>
+    <id>http://tonytonyjan.github.com/2012/05/25/get-start-with-chrome-extension</id>
+    <content type="html"><![CDATA[<p>要寫 Chrome Extension 的先決條件是擁有網頁基礎，因為寫 Chrome Extension 會用到 HTML、Javascript、CSS，如果還不會這些東西，建議在學習 Chrome Extension 之前，先把這些技能磨練好。</p>
+
+<p>這篇介紹會針對 Chrome Extension 的 manifest 結構、檔案結構以及一些常用到的部份做簡單的介紹，包括 Browser Action、Page Action、Background Page 和 Content Script。</p>
+
+<!-- more -->
+
+
+<h2>架構簡介</h2>
+
+<h3>Background Pages</h3>
+
+<p>大多外掛會有一個 background page 常駐在背景，可能是一個 HTML 或者 javascript 檔，外掛的功能與邏輯都被定義在此，然後透過 API 與 UI（browser actions 或 page actions）做溝通。</p>
+
+<p><img src="http://tonytonyjan.github.com/images/arch-1.gif"></p>
+
+<h3>UI Pages</h3>
+
+<p>Chrome Extension 的 UI 介面使用的是 HTML，例如我們可以在 browser action 定義一個 popup.html ：</p>
+
+<p><img src="http://tonytonyjan.github.com/images/arch-2.gif"></p>
+
+<p>Chrome Extension UI：
+*   Browser Actions
+*   Page Actions
+*   Desktop Notifications
+*   Omnibox
+*   Override Pages
+*   Options Pages
+*   Context Menu：右鍵出現的內容</p>
+
+<h2>Chrome Extension = Manifest + Web Assets</h2>
+
+<p>一個 Chrome Extension 由一個 <code>manifest.json</code> 和其他網頁檔案組成，檔案目錄大概會像這個樣子：</p>
+
+<p><img src="http://tonytonyjan.github.com/images/chrome-ext.png"></p>
+
+<p>除了 <code>manifest.json</code> 之外，其餘的檔案都是可選的，所以一個最簡單的（不具任何功能的） Chrome Extension 可以只由一個 <code>manifest.json</code> 組成，其他的檔案需要與否則視 <code>manifest.json</code> 裡頭的設定。Chrome Extension 之於 <code>manifest.json</code> 就像人之於個資一樣，裡面描述所有關於這個 Extension 的資料，包括名稱、敘述、版本、語言、使用的圖片等等。</p>
+
+<h3>manifest.json 簡介</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">//</span> <span class="err">必要</span>
+</span><span class='line'>  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Extension&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;versionString&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;manifest_version&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="err">//</span> <span class="err">建議，非必要</span>
+</span><span class='line'>  <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A plain text description&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;icons&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="err">...</span> <span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;default_locale&quot;</span><span class="p">:</span> <span class="s2">&quot;en&quot;</span><span class="p">,</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="err">//</span> <span class="err">選一個</span>
+</span><span class='line'>  <span class="nt">&quot;browser_action&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;page_action&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;theme&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;app&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="err">//</span> <span class="err">其他視情況需要的設定</span>
+</span><span class='line'>  <span class="nt">&quot;background&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;chrome_url_overrides&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;content_scripts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;content_security_policy&quot;</span><span class="p">:</span> <span class="s2">&quot;policyString&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;file_browser_handlers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;homepage_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://path/to/homepage&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;incognito&quot;</span><span class="p">:</span> <span class="s2">&quot;spanning&quot;</span> <span class="err">or</span> <span class="s2">&quot;split&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;intents&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;publicKey&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;minimum_chrome_version&quot;</span><span class="p">:</span> <span class="s2">&quot;versionString&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;nacl_modules&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;offline_enabled&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;omnibox&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="nt">&quot;keyword&quot;</span><span class="p">:</span> <span class="s2">&quot;aString&quot;</span> <span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;options_page&quot;</span><span class="p">:</span> <span class="s2">&quot;aFile.html&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;permissions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;plugins&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;requirements&quot;</span><span class="p">:</span> <span class="p">{</span><span class="err">...</span><span class="p">},</span>
+</span><span class='line'>  <span class="nt">&quot;update_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://path/to/updateInfo.xml&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;web_accessible_resources&quot;</span><span class="p">:</span> <span class="p">[</span><span class="err">...</span><span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>version</h4>
+
+<p>代表該 Extension 的版本，最多由四個整數組成，並且用 <code>.</code> 分開，數字必須介在 0 到 65535 之間，而且不可以以 0 當開頭，舉例：</p>
+
+<ul>
+<li>錯誤：
+
+<ul>
+<li>&#8220;version&#8221;: &#8220;99999&#8221;</li>
+<li>&#8220;version&#8221;: &#8220;032&#8221;</li>
+</ul>
+</li>
+<li>正確
+
+<ul>
+<li>&#8220;version&#8221;: &#8220;1&#8221;</li>
+<li>&#8220;version&#8221;: &#8220;1.0&#8221;</li>
+<li>&#8220;version&#8221;: &#8220;2.10.2&#8221;</li>
+<li>&#8220;version&#8221;: &#8220;3.1.2.4567&#8221;</li>
+</ul>
+</li>
+</ul>
+
+
+<h4>manifest_version</h4>
+
+<p>一個代表 manifest file 格式版本的整數，如果使用的是 Chrome 18 以上，則應該設定成 2。</p>
+
+<pre><code>"manifest_version": 2
+</code></pre>
+
+<p>可以在<a href="http://code.google.com/chrome/extensions/manifestVersion.html">這裡</a>查閱版本 1 和 2 之間的差別。</p>
+
+<h3>icons</h3>
+
+<p>這邊可以定義 Chrome extension 的 logo。盡量是 PNG 格式，因為 Webkit 對 PNG 的透明度轉換最好。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;icons&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;16&quot;</span><span class="p">:</span> <span class="s2">&quot;icon16.png&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;48&quot;</span><span class="p">:</span> <span class="s2">&quot;icon48.png&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;128&quot;</span><span class="p">:</span> <span class="s2">&quot;icon128.png&quot;</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>128x128：用在安裝時</li>
+<li>48x48：在 <code>chrome://extensions</code> 裡顯示</li>
+<li>16x16：favicon</li>
+</ul>
+
+
+<h2>Browser Action</h2>
+
+<p><img src="http://tonytonyjan.github.com/images/browser-action.png"></p>
+
+<p>Browser action 適合在需要一個常駐的功能放在 Google 工具列時使用，可以加上 tooltip、badge（例如收到幾封信） 和 popup。</p>
+
+<h3>Manifest</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;browser_action&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;default_icon&quot;</span><span class="p">:</span> <span class="s2">&quot;icon19.png&quot;</span><span class="p">,</span>     <span class="err">//</span> <span class="err">可選</span>
+</span><span class='line'>    <span class="nt">&quot;default_title&quot;</span><span class="p">:</span> <span class="s2">&quot;Tooltip title&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">可選</span>
+</span><span class='line'>    <span class="nt">&quot;default_popup&quot;</span><span class="p">:</span> <span class="s2">&quot;popup.html&quot;</span>     <span class="err">//</span> <span class="err">可選，滑鼠單擊會呈現的內容</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Page Action</h2>
+
+<p><img src="http://tonytonyjan.github.com/images/page-action.png"></p>
+
+<p>類似 browser action，差別在於 page action 用於特定網頁才需要的功能，由於 browser action 常駐時會佔用一部份的記憶體，如果你的功能需要在特定狀況下才啟用，建議用 page action 取代 browser action。常見應用是 RSS 訂閱（只有網頁提供 RSS 時才啟用）。</p>
+
+<h3>Manifest</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;page_action&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;default_icon&quot;</span><span class="p">:</span> <span class="s2">&quot;icons/foo.png&quot;</span><span class="p">,</span> <span class="err">//</span> <span class="err">可選</span>
+</span><span class='line'>    <span class="nt">&quot;default_title&quot;</span><span class="p">:</span> <span class="s2">&quot;Tooltip title&quot;</span><span class="p">,</span>    <span class="err">//</span> <span class="err">可選</span>
+</span><span class='line'>    <span class="nt">&quot;default_popup&quot;</span><span class="p">:</span> <span class="s2">&quot;popup.html&quot;</span>    <span class="err">//</span> <span class="err">可選，滑鼠單擊會呈現的內容</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>設計原則：</p>
+
+<ul>
+<li>在功能只針對部份網頁時，使用 page action。</li>
+<li>如果功能需要常駐在每個網頁，使用 browser action。</li>
+</ul>
+
+
+<h2>Content Script</h2>
+
+<p>這是筆者認為最有趣的部份，content script 顧名思義可以在頁面裡面嵌入 javascript，他們可以透過 DOM 得知使用者瀏覽的頁面的內容，甚至可以改變這些內容。</p>
+
+<p>這些是 content script 可以做到的事：</p>
+
+<ul>
+<li>爬出所有沒有 <code>&lt;a&gt;</code> 的 URL，為他們加上 <code>&lt;a&gt;</code></li>
+<li>把字放大</li>
+<li>去掉廣告</li>
+</ul>
+
+
+<p>基本上可以在 chrome 開發人員視窗中能做到的事情，content script 都可以做到。但這功能看似強大，卻有些限制：
+*   <strong>無法</strong>呼叫 <code>chrome.* APIs</code> 這類的 API（<code>chrome.extension</code> 除外）
+*   <strong>無法</strong>使用 extension page 上的變數和函式（例如 background pages）
+*   <strong>無法</strong>使用網頁上的變數和函式</p>
+
+<p>但這些限制可以透過 <code>chrome.extension</code> 與 extension pages 做溝通。</p>
+
+<h2>Manifest</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;content_scripts&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;matches&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;http://www.google.com/*&quot;</span><span class="p">],</span>
+</span><span class='line'>      <span class="nt">&quot;css&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;mystyles.css&quot;</span><span class="p">],</span>
+</span><span class='line'>      <span class="nt">&quot;js&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;jquery.js&quot;</span><span class="p">,</span> <span class="s2">&quot;myscript.js&quot;</span><span class="p">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">],</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>matches</h3>
+
+<p>常用的格式：</p>
+
+<ul>
+<li><p>http://127.0.0.1/*</p>
+
+<p>指定某個 host 下的所有 path</p></li>
+<li><p>http://example.org/foo/bar.html</p>
+
+<p>指定某個連結</p></li>
+<li><p><all_urls></p>
+
+<p>在所有的頁面（這樣的狀況不多，但惡作劇的時候可能會用到）</p></li>
+</ul>
+
+
+<p>其他用法<a href="http://code.google.com/chrome/extensions/match_patterns.html">詳見此</a></p>
+
+<h2>Background Pages</h2>
+
+<p>一個 extension 通常要有一個常駐執行的 script，用來控制 Browser UI（page action 或 browser action），例如我們會需要一個常駐的程式去監聽 FB 是否有新的訊息，如果聽到則在 browser actoin 上面顯示 badge，收信亦如是。</p>
+
+<p>同時如果 content script 需要與 UI 做溝通，要定義的 function 都放在這裡。</p>
+
+<h3>Manifest</h3>
+
+<p>如果內容很少，可以寫在一個檔案即可：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;background&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;scripts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;background.js&quot;</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果內容很多，要分成好幾個 <code>.js</code> 檔，則改用以下方式並配合 <code>&lt;script&gt;</code> 標籤：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'>  <span class="nt">&quot;background&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;page&quot;</span><span class="p">:</span> <span class="s2">&quot;background.html&quot;</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>  <span class="err">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[冰冰涼涼的 Ju-Ju]]></title>
@@ -1112,34 +1481,6 @@ set LC_ALL=zh_TW.UTF-8
 
 
 <p>這似乎也意謂著對於那些無法改變的事情不用太計較：出生的家庭、遺傳的長相等等。好也不用太得意，小時了了，大未必佳，反而要更警惕自己；壞也不用氣餒，塞翁失馬，焉知非福，人的個性才是成功的關鍵。</p>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[From Taipei To Oulan Bator（MIT 台灣誌片尾曲）]]></title>
-    <link href="http://tonytonyjan.github.com/2011/12/14/3/"/>
-    <updated>2011-12-14T08:32:19+08:00</updated>
-    <id>http://tonytonyjan.github.com/2011/12/14/3</id>
-    <content type="html"><![CDATA[<p><iframe width="420" height="315" src="http://www.youtube.com/embed/2WkxjOyhIY0?rel=0#t=5m49s" frameborder="0" allowfullscreen=""></iframe></p>
-
-
-<p><iframe width="180" height="60" style="border-style: initial; border-color: initial;" marginwidth="0" marginheight="0" src="http://vlog.xuite.net/embed/Wkhzd203LTQwNjkxMTUuZmx2?ar=0&amp;as=0" scrolling="no" frameborder="0"></iframe></p>
-
-
-<p>（From Taipei To Oulan Bator 完整版音樂）</p>
-
-
-<p>有看過「MIT台灣誌」的朋友，應該對於他的片尾曲不陌生吧？這首叫「From Taipei to Oulan Bator」的歌，是由郭英男與馬蘭吟唱隊所唱，且在國外發行，因為很好聽，是在網路上詢問度非常高的歌曲。而筆者也是每次聽到都有種心靈受到洗滌的感覺，於是開始搜尋這首歌曲的來歷。</p>
-
-
-<p><span><span>有趣的是，這首歌的來歷眾說紛紜，常聽到的說法是這首歌是在韓國錄製，但事實上並非如此。經過筆者蒐集資料之後，確定</span></span>「From Taipei to Oulan Bator」來自於一個叫「<a href="http://www.arilprivatestudio.be/khe/index.php">Kheops</a>」的樂團（在台灣恐怕鮮為人知），並收錄在 1996 年的第一個專輯「Pyramix」。</p>
-
-
-<p><img src="http://tonytonyjan.github.com/images/slum-area/3_205547401_m.jpg"></p>
-
-
-<p><span><span>Kheops 是由 Aril Laury 與 Timothy Hagelstein 所主導，結合藝術、音樂、與世界各國的歌手與樂手的音樂團體。Aril Laury 負責詞曲，編曲，聲音演出。Timothy Hagelstein 負責混音及後製。</span></span></p>
 
 ]]></content>
   </entry>

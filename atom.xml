@@ -4,7 +4,7 @@
   <title><![CDATA[不歸錄]]></title>
   <link href="http://tonytonyjan.github.com/atom.xml" rel="self"/>
   <link href="http://tonytonyjan.github.com/"/>
-  <updated>2012-05-25T16:48:59+08:00</updated>
+  <updated>2012-05-25T16:58:36+08:00</updated>
   <id>http://tonytonyjan.github.com/</id>
   <author>
     <name><![CDATA[大兜]]></name>
@@ -330,7 +330,7 @@
 <li><p>http://example.org/foo/bar.html</p>
 
 <p>指定某個連結</p></li>
-<li><p><all_urls></p>
+<li><p>&lt;all_urls&gt;</p>
 
 <p>在所有的頁面（這樣的狀況不多，但惡作劇的時候可能會用到）</p></li>
 </ul>

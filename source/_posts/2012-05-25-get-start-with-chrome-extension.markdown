@@ -218,7 +218,7 @@ Browser action 適合在需要一個常駐的功能放在 Google 工具列時使
 
     指定某個連結
 
-*   <all_urls>
+*   &lt;all_urls&gt;
 
     在所有的頁面（這樣的狀況不多，但惡作劇的時候可能會用到）
 

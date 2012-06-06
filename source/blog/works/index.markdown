@@ -10,6 +10,12 @@ indexer: true
 
 注意：這個頁面尚未完成
 
+## TJNGram
+
+*    [文件](/blog/tjngram)
+
+Ruby 實做的 N-Gram 演算法，雖然有別人寫好的放在 RubyGems，但只有支援英文，無法對中日韓文字斷詞，而 TJNGram 正為解決此問題而生。
+
 ## Indexer for Octopress
 
 *   [範例](/blog/octopress-indexer)

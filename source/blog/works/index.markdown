@@ -10,6 +10,14 @@ indexer: true
 
 注意：這個頁面尚未完成
 
+## TJPlurk Notifier
+
+{% img /images/notification.png %}
+
+*   [安裝](/downloads/tjplurk-notifier.crx)
+
+應社課教材需要寫的一個噗浪 Chrome 外掛，會在你的好友發噗的時候提醒你，總之就是一個會讓你無法認真的外掛。
+
 ## TJNGram
 
 *    [文件](/blog/tjngram)
